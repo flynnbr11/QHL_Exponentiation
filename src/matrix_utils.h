@@ -145,10 +145,10 @@ private:
 #endif
 		values = NULL;
 	}
-    complex_t* values;
-    uint32_t num_values;
     uint32_t num_rows;
     uint32_t num_cols;
+    uint32_t num_values;
+    complex_t* values;
 };
 
 class RealMatrix {
