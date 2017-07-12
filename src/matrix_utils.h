@@ -65,39 +65,20 @@ class RealMatrix;
 class ComplexMatrix {
 public:
 	ComplexMatrix()
-	: num_rows(0), num_cols(0), num_values(0), values(NULL)
+	: self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
 	{
 	}
-	ComplexMatrix(uint32_t rows, uint32_t cols)
-	{
-		//		printf("allocate %p\n", this);
-		allocate(rows, cols);
-	}
+    ComplexMatrix(uint32_t rows, uint32_t cols)
+    {
+        allocate(rows, cols);
+    }
+    ComplexMatrix(uint32_t rows, uint32_t cols, complex_t* data)
+    : self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
+    {
+    }
 	~ComplexMatrix()
     {
-//		printf("destroy %p\n", this);
 		destroy();
-    }
-    void set_random_unitary()
-    {
-//		Returns a U(n) unitary of size n - random by the Haar measure
-//			Taken from "How to generate random matrices from the classical compact groups" (Francesco Mezzadri)
-//		Original Python:
-//		z = (randn(n,n) + 1j*randn(n,n))/sqrt(2.0)
-//			q,r = linalg.qr(z)
-//			d = diagonal(r)
-//			ph = d/absolute(d)
-//			q = multiply(q,ph,q)
-//			return matrix(q)
-			
-		double one_over_root_2 = 1.0 / sqrt(2.0);
-
-		for (uint32_t i = 0; i < num_values; ++i)
-        {
-			double re = random_plus_minus() * one_over_root_2;
-			double im = random_plus_minus() * one_over_root_2;
-			values[i] = to_complex(re, im);
-        }
     }
     complex_t permanent() const
     {
@@ -121,6 +102,7 @@ public:
     }
 	void allocate(uint32_t rows, uint32_t cols)
 	{
+        self_allocated = true;
 		num_rows = rows;
 		num_cols = cols;
 		num_values = num_rows * num_cols;
@@ -131,24 +113,30 @@ public:
 #endif
 	}
     void mag_sqr(RealMatrix& dst) const;
+    void expm_special(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
 
 private:
     void destroy()
     {
+        if (self_allocated)
+        {
 #ifdef MSVC
-		if (values)
-			_aligned_free(values);
+    		if (values)
+    			_aligned_free(values);
 #else
-		if (values)
-			free(values);
+    		if (values)
+    			free(values);
 #endif
+        }
+        self_allocated = false;
 		values = NULL;
 	}
-    uint32_t num_rows;
-    uint32_t num_cols;
-    uint32_t num_values;
-    complex_t* values;
+    bool self_allocated;    // We're responsible for freeing the values
+    uint32_t num_rows;      // number of rows
+    uint32_t num_cols;      // number of columns
+    uint32_t num_values;    // num_rows * num_cols
+    complex_t* values;      // the actual storage
 };
 
 class RealMatrix {

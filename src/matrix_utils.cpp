@@ -17,6 +17,19 @@ void ComplexMatrix::mag_sqr(RealMatrix& dst) const
         *pdst++ = ::mag_sqr(*psrc++);
 }
 
+
+
+void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
+{
+    printf("precision = %f\n", precision);
+    for (size_t i = 0; i < num_rows * num_rows; ++i)
+        dst.values[i] = add(values[i], values[i]);
+}
+
+
+
+
+
 /* Adapted from Brian Butler's Matlab implementation here:
  *  https://www.mathworks.com/matlabcentral/fileexchange/
  *   53784-matrix-permanent-using-nijenhuis-wilf-in-cmex/content/perman_mat.m

@@ -75,7 +75,7 @@ static PyObject* ExpmSpecial(PyObject *self, PyObject *args)
     size_t dst_stride = PyArray_STRIDES(dst_matrix)[0];
     bool   src_is_complex = PyArray_ISCOMPLEX(src_matrix);
     bool   dst_is_complex = PyArray_ISCOMPLEX(dst_matrix);
-    const complex_t* src_ptr = (const complex_t*)PyArray_DATA(src_matrix);
+    complex_t* src_ptr = (complex_t*)PyArray_DATA(src_matrix);
     complex_t* dst_ptr = (complex_t*)PyArray_DATA(dst_matrix);
     const char* error_str = NULL;
 
@@ -94,10 +94,10 @@ static PyObject* ExpmSpecial(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    const ComplexMatrix src(src_rows, src_cols, src_ptr);
+    ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
 
-    for (size_t i = 0; i < dst_rows * dst_cols; ++i)
-        dst_ptr[i] = to_complex((double)i, 0.1);
-
+    src.expm_special(dst, precision);
 
     result_str = "ok";
     return Py_BuildValue("s", result_str.c_str());
