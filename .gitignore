@@ -1,0 +1,5 @@
+build/
+data/evo_matrices_dims4-1024.dat
+*.pyc
+*.so
+matrix_utils.egg-info/
