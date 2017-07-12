@@ -11,32 +11,37 @@
 #include <immintrin.h>
 #include <pmmintrin.h>
 #include <random>
-typedef __m128d Scalar;
+typedef __m128d scalar_t;
 typedef __m128d complex_t;
 
 inline complex_t load_complex(const complex_t* addr) {
     return _mm_load_pd((const double*)addr);
 }
-inline Scalar to_scalar(double rhs) { return _mm_set_pd(rhs, rhs); }
+inline scalar_t to_scalar(double rhs) { return _mm_set_pd(rhs, rhs); }
 inline complex_t to_complex(double r, double i) { return _mm_set_pd(i, r); }
 inline double get_real(const complex_t c) { return ((double*)&c)[0]; }
 inline double get_imag(const complex_t c) { return ((double*)&c)[1]; }
 inline const complex_t add(const complex_t lhs, const complex_t rhs) { return _mm_add_pd(lhs, rhs); }
 inline const complex_t sub(const complex_t lhs, const complex_t rhs) { return _mm_sub_pd(lhs, rhs); }
-inline const complex_t mul_scalar(const complex_t lhs, const Scalar rhs) { return _mm_mul_pd(lhs, rhs); }
+inline const complex_t mul_scalar(const complex_t lhs, const scalar_t rhs) { return _mm_mul_pd(lhs, rhs); }
 inline double mag_sqr(const complex_t lhs) { complex_t c = _mm_mul_pd(lhs, lhs); return get_real(c) + get_imag(c); }
 inline void addeq(complex_t* lhs, const complex_t rhs) { *lhs = _mm_add_pd(*lhs, rhs); }
 inline void subeq(complex_t* lhs, const complex_t rhs) { *lhs = _mm_sub_pd(*lhs, rhs); }
-inline void muleq_scalar(complex_t* lhs, const Scalar rhs) { *lhs = _mm_mul_pd(*lhs, rhs); }
-inline void muleq(complex_t* a_b, const complex_t c_d)
+inline void muleq_scalar(complex_t* lhs, const scalar_t rhs) { *lhs = _mm_mul_pd(*lhs, rhs); }
+inline const complex_t mul(const complex_t a_b, const complex_t c_d)
 {
-    complex_t a_a = _mm_permute_pd(*a_b, 0);
-    complex_t b_b = _mm_permute_pd(*a_b, 3);
+    complex_t a_a = _mm_permute_pd(a_b, 0);
+    complex_t b_b = _mm_permute_pd(a_b, 3);
     complex_t d_c = _mm_permute_pd(c_d, 1);
     complex_t bc_bd = _mm_mul_pd(b_b, d_c);
     complex_t ad_ac = _mm_mul_pd(a_a, c_d);
-    *a_b = _mm_addsub_pd(ad_ac, bc_bd);
+    return _mm_addsub_pd(ad_ac, bc_bd);
 }
+inline void muleq(complex_t* a_b, const complex_t c_d)
+{
+    *a_b = mul(*a_b, c_d);
+}
+
 complex_t do_permanent(const complex_t* mtx_data, uint32_t size);
 double do_permanent(const double* mtx_data, uint32_t size);
 
@@ -113,6 +118,10 @@ public:
 #endif
     }
     void mag_sqr(RealMatrix& dst) const;
+    void make_identity();
+    void make_zero();
+    void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const;
+    void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void expm_special(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
 

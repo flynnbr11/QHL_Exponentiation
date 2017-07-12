@@ -17,13 +17,102 @@ void ComplexMatrix::mag_sqr(RealMatrix& dst) const
         *pdst++ = ::mag_sqr(*psrc++);
 }
 
+void ComplexMatrix::make_identity()
+{
+    complex_t zero = to_complex(0.0, 0.0);
+    complex_t one = to_complex(1.0, 0.0);
+    for (uint32_t row = 0; row < num_rows; ++row)
+    {
+        complex_t* prow = get_row(row);
+        for (uint32_t col = row; col < num_cols; ++col)
+        {
+            complex_t* pcol = get_row(col);
+            if (row == col)
+                prow[col] = pcol[row] = one;
+            else
+                prow[col] = pcol[row] = zero;
+        }
+    }
+}
 
+void ComplexMatrix::make_zero()
+{
+    complex_t zero = to_complex(0.0, 0.0);
+    for (uint32_t row = 0; row < num_rows; ++row)
+    {
+        complex_t* prow = get_row(row);
+        for (uint32_t col = row; col < num_cols; ++col)
+        {
+            complex_t* pcol = get_row(col);
+            prow[col] = pcol[row] = zero;
+        }
+    }
+}
+
+// dst = this * rhs
+void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const
+{
+    // TODO: take advantage of the fact that these are diagonally semmetrical
+    size_t size = num_rows;
+    complex_t zero = to_complex(0.0, 0.0);
+    for (uint32_t row = 0; row < size; ++row)
+    {
+        complex_t* dst_row = dst.get_row(row);
+        for (uint32_t col = 0; col < size; ++col)
+        {
+            complex_t accum = zero;
+            for (uint32_t i = 0; i < size; ++i)
+            {
+                accum = add(accum, mul((*this)[row][i], rhs[i][col]));
+            }
+            dst_row[col] = accum;
+        }
+    }
+}
+
+// this += rhs * scale
+void ComplexMatrix::add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale)
+{
+    // TODO: take advantage of the fact that these are diagonally semmetrical
+    for (size_t i = 0; i < num_rows * num_rows; ++i)
+        values[i] = add(values[i], mul_scalar(rhs.values[i], scale));
+}
 
 void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
 {
-    printf("precision = %f\n", precision);
-    for (size_t i = 0; i < num_rows * num_rows; ++i)
-        dst.values[i] = add(values[i], values[i]);
+    // TODO: This function isn't correct, but it's close.
+    
+    // To avoid extra copying, we alternate power accumulation matrices
+    ComplexMatrix power_accumulator0(num_rows, num_cols);
+    ComplexMatrix power_accumulator1(num_rows, num_cols);
+    power_accumulator0.make_identity();
+    power_accumulator1.make_identity();
+    ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
+
+    dst.make_zero();
+
+    double one_over_k_factorial = 1.0;
+    bool done = false;
+    for (uint32_t k = 0; !done; ++k)
+    {
+        if (k > 1)
+            one_over_k_factorial /= k;
+        if (one_over_k_factorial >= precision)
+        {
+            uint32_t alternate = k & 1;
+            ComplexMatrix& new_pa = *pa[alternate];
+            const ComplexMatrix& old_pa = *pa[1 - alternate];
+            if (k > 0)
+                old_pa.mul_hermitian(*this, new_pa);
+
+            scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial);
+            dst.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+        }
+        else
+        {
+            done = true;
+        }
+    }
 }
 
 
@@ -47,7 +136,7 @@ complex_t do_permanent(const complex_t* mtx_data, uint32_t size)
     complex_t xrow_storage[MAX_PERM_SIZE];
 
     complex_t* xrow = xrow_storage;
-    Scalar half = to_scalar(0.5);
+    scalar_t half = to_scalar(0.5);
     complex_t p = to_complex(1.0, 0.0);
 
     for (size_t i = 0; i < size; ++i)
@@ -67,7 +156,7 @@ complex_t do_permanent(const complex_t* mtx_data, uint32_t size)
     {
         uint64_t yi = (i+1) ^ ((i+1) >> 1);
         uint32_t zi = int_log2(yi ^ y_prev);
-        Scalar si = to_scalar(-1.0 + 2.0 * bit_get(yi, zi));
+        scalar_t si = to_scalar(-1.0 + 2.0 * bit_get(yi, zi));
 
         y_prev = yi;
 
