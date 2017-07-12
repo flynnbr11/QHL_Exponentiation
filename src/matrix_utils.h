@@ -64,10 +64,10 @@ class RealMatrix;
 
 class ComplexMatrix {
 public:
-	ComplexMatrix()
-	: self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
-	{
-	}
+    ComplexMatrix()
+    : self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
+    {
+    }
     ComplexMatrix(uint32_t rows, uint32_t cols)
     {
         allocate(rows, cols);
@@ -76,9 +76,9 @@ public:
     : self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
     {
     }
-	~ComplexMatrix()
+    ~ComplexMatrix()
     {
-		destroy();
+        destroy();
     }
     complex_t permanent() const
     {
@@ -100,18 +100,18 @@ public:
     {
         return get_row(row);
     }
-	void allocate(uint32_t rows, uint32_t cols)
-	{
+    void allocate(uint32_t rows, uint32_t cols)
+    {
         self_allocated = true;
-		num_rows = rows;
-		num_cols = cols;
-		num_values = num_rows * num_cols;
+        num_rows = rows;
+        num_cols = cols;
+        num_values = num_rows * num_cols;
 #ifdef MSVC
-		values = (complex_t*)_aligned_malloc(num_values * sizeof(complex_t), 16);
+        values = (complex_t*)_aligned_malloc(num_values * sizeof(complex_t), 16);
 #else
-		values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
+        values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
 #endif
-	}
+    }
     void mag_sqr(RealMatrix& dst) const;
     void expm_special(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
@@ -122,16 +122,16 @@ private:
         if (self_allocated)
         {
 #ifdef MSVC
-    		if (values)
-    			_aligned_free(values);
+            if (values)
+                _aligned_free(values);
 #else
-    		if (values)
-    			free(values);
+            if (values)
+                free(values);
 #endif
         }
         self_allocated = false;
-		values = NULL;
-	}
+        values = NULL;
+    }
     bool self_allocated;    // We're responsible for freeing the values
     uint32_t num_rows;      // number of rows
     uint32_t num_cols;      // number of columns
@@ -141,13 +141,13 @@ private:
 
 class RealMatrix {
 public:
-	RealMatrix()
-	: num_rows(0), num_cols(0)
-	{
-	}
-	RealMatrix(uint32_t rows, uint32_t cols)
+    RealMatrix()
+    : num_rows(0), num_cols(0)
     {
-		allocate(rows, cols);
+    }
+    RealMatrix(uint32_t rows, uint32_t cols)
+    {
+        allocate(rows, cols);
     }
     ~RealMatrix()
     {
@@ -164,12 +164,12 @@ public:
     {
         return &values[0] + row * num_cols;
     }
-	void allocate(uint32_t rows, uint32_t cols)
-	{
-		num_rows = rows;
-		num_cols = cols;
-		values.resize(num_rows * num_cols);
-	}
+    void allocate(uint32_t rows, uint32_t cols)
+    {
+        num_rows = rows;
+        num_cols = cols;
+        values.resize(num_rows * num_cols);
+    }
 private:
     std::vector<double> values;
     uint32_t num_rows;

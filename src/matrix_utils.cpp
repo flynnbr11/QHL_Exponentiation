@@ -39,11 +39,11 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
 
 complex_t do_permanent(const complex_t* mtx_data, uint32_t size)
 {
-	if (size > MAX_PERM_SIZE)
-	{
-		printf("Error: MAX_PERM_SIZE needs to be increased.\n");
-		return to_complex(0, 0);
-	}
+    if (size > MAX_PERM_SIZE)
+    {
+        printf("Error: MAX_PERM_SIZE needs to be increased.\n");
+        return to_complex(0, 0);
+    }
     complex_t xrow_storage[MAX_PERM_SIZE];
 
     complex_t* xrow = xrow_storage;
