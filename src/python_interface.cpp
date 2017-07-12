@@ -57,11 +57,11 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 static PyObject* ExpmSpecial(PyObject *self, PyObject *args)
 {
     std::string result_str;
-    float precision = 0.0f;
+    double precision = 0.0f;
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
-    if (!PyArg_ParseTuple(args, "O!O!f", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &precision))
+    if (!PyArg_ParseTuple(args, "O!O!d", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &precision))
     {
         fprintf(stderr, "Error: expm_special() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
