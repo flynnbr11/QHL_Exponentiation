@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # matrix_size: how many qubits. matrix will be square of 2^size X 2^size
 #matrix_sizes = [1,2,3]
-matrix_sizes = range(1,5)
+matrix_sizes = range(1,13)
 track_times=np.zeros([len(matrix_sizes), 4])
 
 
@@ -21,7 +21,7 @@ for i in range(0,len(matrix_sizes)):
 	b = time.time()
 
 	c=time.time()
-	emat = mu.expm_special(mat)
+	mu.expm_special(mat)
 	d=time.time()
 
 	time_linalg = b-a

@@ -23,10 +23,11 @@ def get_matrix(matrix_size):
 	else:			
 		for i in range(len(params)-1):
 				if i==0:
-				    output = np.tensordot(params[i]*newoplist[i], params[i+1]*newoplist[i+1], axes=0)
+				    output = np.kron(params[i]*newoplist[i], params[i+1]*newoplist[i+1])
 				else:
-				    output = np.tensordot(output, params[i+1]*newoplist[i+1], axes=0)
+				    output = np.kron(output, params[i+1]*newoplist[i+1])
 		output = np.reshape(output, [2**size,2**size])
 
 	# print('Ratio of non zero to total elements:', np.count_nonzero(output), ':', ((2**size)**2))
+	
 	return output
