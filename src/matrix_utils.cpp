@@ -49,6 +49,19 @@ void ComplexMatrix::make_zero()
     }
 }
 
+// Optimization notes: tiny changes for 12x speedup
+//
+// These ned to be verified! If I've made a bad assumption, we can probably
+// adjust these.
+//
+// Time to do exp on a 512x512 identity matrix
+// original version: 17.12 seconds
+// With OPT_1:     3.09 seconds (5.5x faster)
+// With OPT_2:     2.93 seconds
+// With OPT_3:     1.41 seconds (12.1x faster)
+#define OPT_1 0
+#define OPT_2 0
+#define OPT_3 1
 // dst = this * rhs
 void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const
 {
@@ -57,16 +70,50 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     complex_t zero = to_complex(0.0, 0.0);
     for (uint32_t row = 0; row < size; ++row)
     {
+#if OPT_3
+        // Here we make the assumption that the output will be symmetric across
+        // the diagonal, so we only need to calculate half of it, and  then
+        // write the other half to match.
+        complex_t* dst_row = dst.get_row(row);
+        const complex_t* src1 = get_row(row);
+        for (uint32_t col = row; col < size; ++col)
+        {
+            const complex_t* src2 = rhs.get_row(col);
+            complex_t accum = zero;
+            for (uint32_t i = 0; i < size; ++i)
+                accum = add(accum, mul(src1[i], src2[i]));
+            dst_row[col] = dst[col][row] = accum;
+        }
+#elif OPT_2
+        // Here, we get our row and column pointers outside the inner loop.
+        complex_t* dst_row = dst.get_row(row);
+        const complex_t* src1 = get_row(row);
+        for (uint32_t col = 0; col < size; ++col)
+        {
+            const complex_t* src2 = rhs.get_row(col);
+            complex_t accum = zero;
+            for (uint32_t i = 0; i < size; ++i)
+                accum = add(accum, mul(src1[i], src2[i]));
+            dst_row[col] = accum;
+        }
+#else
         complex_t* dst_row = dst.get_row(row);
         for (uint32_t col = 0; col < size; ++col)
         {
             complex_t accum = zero;
             for (uint32_t i = 0; i < size; ++i)
             {
+# if OPT_1
+                // Here, we make the assumption that rhs is symmetric across
+                // the diagonal, to improve cache coherence greatly.
+                accum = add(accum, mul((*this)[row][i], rhs[col][i]));
+# else
                 accum = add(accum, mul((*this)[row][i], rhs[i][col]));
+# endif
             }
             dst_row[col] = accum;
         }
+#endif
     }
 }
 
@@ -80,8 +127,6 @@ void ComplexMatrix::add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_
 
 void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
 {
-    // TODO: This function isn't correct, but it's close.
-    
     // To avoid extra copying, we alternate power accumulation matrices
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
