@@ -21,6 +21,8 @@ inline scalar_t to_scalar(double rhs) { return _mm_set_pd(rhs, rhs); }
 inline complex_t to_complex(double r, double i) { return _mm_set_pd(i, r); }
 inline double get_real(const complex_t c) { return ((double*)&c)[0]; }
 inline double get_imag(const complex_t c) { return ((double*)&c)[1]; }
+
+inline complex_t complex_conjugate(const complex_t& c) { return to_complex(get_real(c), -get_imag(c)); }
 inline const complex_t add(const complex_t lhs, const complex_t rhs) { return _mm_add_pd(lhs, rhs); }
 inline const complex_t sub(const complex_t lhs, const complex_t rhs) { return _mm_sub_pd(lhs, rhs); }
 inline const complex_t mul_scalar(const complex_t lhs, const scalar_t rhs) { return _mm_mul_pd(lhs, rhs); }

@@ -68,6 +68,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     // TODO: take advantage of the fact that these are diagonally semmetrical
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
+    complex_t conj = to_complex(1.0, -1.0);
     for (uint32_t row = 0; row < size; ++row)
     {
 #if OPT_3
@@ -81,8 +82,9 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
             const complex_t* src2 = rhs.get_row(col);
             complex_t accum = zero;
             for (uint32_t i = 0; i < size; ++i)
-                accum = add(accum, mul(src1[i], src2[i]));
-            dst_row[col] = dst[col][row] = accum;
+                accum = add(accum, mul(src1[i], src2[i] * conj));
+            dst_row[col] = accum;
+            dst[col][row] = accum * conj; // This * conj may belong on the previous line
         }
 #elif OPT_2
         // Here, we get our row and column pointers outside the inner loop.
@@ -93,7 +95,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
             const complex_t* src2 = rhs.get_row(col);
             complex_t accum = zero;
             for (uint32_t i = 0; i < size; ++i)
-                accum = add(accum, mul(src1[i], src2[i]));
+                accum = add(accum, mul(src1[i], src2[i] * conj));
             dst_row[col] = accum;
         }
 #else
@@ -106,7 +108,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 # if OPT_1
                 // Here, we make the assumption that rhs is symmetric across
                 // the diagonal, to improve cache coherence greatly.
-                accum = add(accum, mul((*this)[row][i], rhs[col][i]));
+                accum = add(accum, mul((*this)[row][i], rhs[col][i] * conj));
 # else
                 accum = add(accum, mul((*this)[row][i], rhs[i][col]));
 # endif
