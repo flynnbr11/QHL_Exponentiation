@@ -16,7 +16,7 @@ size=1
 identity = np.array([[1+0j, 0+0j], [0+0j, 1+0j]])
 #mtx=identity
 
-mtx = np.array([[1+0j, 2+0j], [3+0j, 1+0j]])
+mtx = np.array([[1+0j, 2+0j], [3+0j, 4+0j]])
 
 linalg_output=scipy.linalg.expm(mtx)
 sparse_linalg_output = scipy.sparse.csc_matrix(linalg_output)
@@ -26,7 +26,7 @@ scipy_output = scipy.sparse.linalg.expm(sparse_mtx)
 
 
 expm_special_output = mu.expm_special(mtx)
-sparse_expm_special_output = scipy.sparse.csc_matrix(mtx)
+sparse_expm_special_output = scipy.sparse.csc_matrix(expm_special_output)
 
 print 'Matrix:'
 print mtx
@@ -41,7 +41,11 @@ print sparse_linalg_output
 print 'Scipy:'
 print scipy_output
 
-print 'ExpmSpecial:'
+
+print '---- ExpmSpecial ---- :'
+print 'Before sparsing:'
+print expm_special_output
+print 'After sparsing:'
 print sparse_expm_special_output
 
 if np.all(expm_special_output == scipy_output):
