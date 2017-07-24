@@ -73,16 +73,18 @@ class RealMatrix;
 class ComplexMatrix {
 public:
     ComplexMatrix()
-    : self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
+    : allocated_nnz_array(false), self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
     {
     }
     ComplexMatrix(uint32_t rows, uint32_t cols)
+    : allocated_nnz_array(false)
     {
         allocate(rows, cols);
     }
     ComplexMatrix(uint32_t rows, uint32_t cols, complex_t* data)
-    : self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
+    : allocated_nnz_array(false), self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
     {
+        fill_nnz_count_array();
     }
     ~ComplexMatrix()
     {
@@ -131,6 +133,25 @@ public:
 		//*/
 
 
+		void fill_nnz_count_array()
+		{
+        max_nnz_in_a_row =0;
+				if(allocated_nnz_array==1){
+					delete[] num_nonzeros_by_row; 
+				}
+				allocated_nnz_array = 1;
+				num_nonzeros_by_row = new uint32_t[num_rows];
+				for(uint32_t i=0; i<num_rows; i++)
+				{
+					uint32_t this_row_sum = sum_row(i);
+					num_nonzeros_by_row[i]= this_row_sum;
+					if (this_row_sum > max_nnz_in_a_row)
+					{
+						max_nnz_in_a_row = this_row_sum;
+					}
+				}
+		}
+		
     void allocate(uint32_t rows, uint32_t cols)
     {
         self_allocated = true;
@@ -142,6 +163,7 @@ public:
 #else
         values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
 #endif
+				fill_nnz_count_array();
     }
     void mag_sqr(RealMatrix& dst) const;
     void make_identity();
@@ -164,14 +186,22 @@ private:
                 free(values);
 #endif
         }
+				if(allocated_nnz_array==1){
+					delete[] num_nonzeros_by_row; 
+				}
+ 				allocated_nnz_array= false;
         self_allocated = false;
         values = NULL;
     }
+    bool allocated_nnz_array;
     bool self_allocated;    // We're responsible for freeing the values
     uint32_t num_rows;      // number of rows
     uint32_t num_cols;      // number of columns
     uint32_t num_values;    // num_rows * num_cols 
+    uint32_t max_nnz_in_a_row;
     complex_t* values;      // the actual storage
+		uint32_t *num_nonzeros_by_row;
+
 };
 
 class RealMatrix {

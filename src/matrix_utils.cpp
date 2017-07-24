@@ -79,6 +79,8 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 			printf("opt In 4 development section\n");
 			uint32_t sum_row = rhs.sum_row(row);
 			printf("Number of nonzeros in row %zu is %zu \n", row, sum_row);
+			printf("Number of nonzeros (Array) in row %zu is %zu \n", row, rhs.num_nonzeros_by_row[row]);
+			printf("Max nnz in a single row: %zu \n", rhs.max_nnz_in_a_row);
 			/*
 			if(sum_rows[row] !=0){
 				
