@@ -4,7 +4,7 @@ import time
 
 #mu.test_run()
 
-mat_size = 512
+mat_size = 4
 mat = np.identity(mat_size, dtype=np.complex128)
 
 t_start = time.time()

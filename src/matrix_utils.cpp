@@ -61,7 +61,9 @@ void ComplexMatrix::make_zero()
 // With OPT_3:     1.41 seconds (12.1x faster)
 #define OPT_1 0
 #define OPT_2 0
-#define OPT_3 1
+#define OPT_3 0
+#define OPT_4 1 // opt 4 used for development of sparsity utility
+
 // dst = this * rhs
 void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const
 {
@@ -71,7 +73,56 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     complex_t conj = to_complex(1.0, -1.0);
     for (uint32_t row = 0; row < size; ++row)
     {
-#if OPT_3
+#if OPT_4
+
+
+			printf("opt In 4 development section\n");
+			uint32_t sum_row = rhs.sum_row(row);
+			printf("Number of nonzeros in row %zu is %zu \n", row, sum_row);
+			/*
+			if(sum_rows[row] !=0){
+				
+				// get cols of nnz from idxs
+		      for (uint32_t i = 0; i < size; ++i)
+					{
+						complex_t accum = zero;
+						for(uint32 j = 0; j < max_number_nonzero; j++)
+						{
+							if(non_zero_locations[row][j]!=0)
+							{ 
+								column_location = non_zero_locations[row][j];
+								if (column_location > row) //only want to do RHS of matrix
+								{
+					        accum = add(accum, mul(src1[i], src2[column_location]));
+								}
+							}
+				      dst_row[col] = accum;
+				      dst[col][row] = accum * conj; // This * conj may belong on the previous line
+						}
+				}
+			}
+			*/
+
+
+        complex_t* dst_row = dst.get_row(row);
+        const complex_t* src1 = get_row(row);
+        for (uint32_t col = row; col < size; ++col)
+        {
+            const complex_t* src2 = rhs.get_row(col);
+            complex_t accum = zero;
+            for (uint32_t i = 0; i < size; ++i)
+            // Add check here whether entries are nnz
+            /*
+            	if(nonzero_elements[row][col] = 1){
+                accum = add(accum, mul(src1[i], src2[i] * conj));
+            	}
+            */
+                accum = add(accum, mul(src1[i], src2[i] * conj));
+            dst_row[col] = accum;
+            dst[col][row] = accum * conj; // This * conj may belong on the previous line
+        }
+#elif OPT_3
+				printf("In opt 3 development section\n");
         // Here we make the assumption that the output will be symmetric across
         // the diagonal, so we only need to calculate half of it, and  then
         // write the other half to match.
@@ -86,6 +137,8 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
             dst_row[col] = accum;
             dst[col][row] = accum * conj; // This * conj may belong on the previous line
         }
+
+
 #elif OPT_2
         // Here, we get our row and column pointers outside the inner loop.
         complex_t* dst_row = dst.get_row(row);

@@ -14,6 +14,7 @@
 typedef __m128d scalar_t;
 typedef __m128d complex_t;
 
+
 inline complex_t load_complex(const complex_t* addr) {
     return _mm_load_pd((const double*)addr);
 }
@@ -95,6 +96,8 @@ public:
     {
         return values + row * num_cols;
     }
+		
+
     const complex_t* get_row(uint32_t row) const
     {
         return values + row * num_cols;
@@ -107,6 +110,27 @@ public:
     {
         return get_row(row);
     }
+
+		//*
+		uint32_t sum_row(uint32_t row) const
+		{
+			const complex_t* row_vals = get_row(row);
+			uint32_t running_sum = 0; 
+			for(uint32_t i=0; i<num_cols; i++)
+			{
+				if(::mag_sqr(row_vals[i])>1e-15)
+				{
+					printf("Row %zu \n", row);
+					printf("Nonzero element at %zu \n", i); 
+					printf("Element = (%lf, %lf) \n", get_real(row_vals[i]), get_imag(row_vals[i]));
+					running_sum += 1;
+				}
+			}
+			return running_sum;
+		}
+		//*/
+
+
     void allocate(uint32_t rows, uint32_t cols)
     {
         self_allocated = true;
@@ -146,7 +170,7 @@ private:
     bool self_allocated;    // We're responsible for freeing the values
     uint32_t num_rows;      // number of rows
     uint32_t num_cols;      // number of columns
-    uint32_t num_values;    // num_rows * num_cols
+    uint32_t num_values;    // num_rows * num_cols 
     complex_t* values;      // the actual storage
 };
 
