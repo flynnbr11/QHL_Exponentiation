@@ -74,21 +74,23 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     for (uint32_t row = 0; row < size; ++row)
     {
 #if OPT_4
-
-
-			printf("opt In 4 development section\n");
+			//printf("opt In 4 development section\n");
 			uint32_t sum_row = rhs.sum_row(row);
-			printf("Number of nonzeros in row %zu is %zu \n", row, sum_row);
-			printf("Number of nonzeros (Array) in row %zu is %zu \n", row, rhs.num_nonzeros_by_row[row]);
-			printf("Max nnz in a single row: %zu \n", rhs.max_nnz_in_a_row);
+			printf("Row %zu. \n \t Nonzero locations \t Value \n", row);
+
+			for (uint32_t j = 0; j<rhs.max_nnz_in_a_row; j++)
+			{
+				printf("\t %lu \t (%lf, %lf) \n", rhs.nonzero_col_locations[row][j], get_real(rhs.nonzero_values[row][j]), get_imag(rhs.nonzero_values[row][j]));
+			}
+
 			/*
-			if(sum_rows[row] !=0){
+			if(rhs.num_nonzeros_by_row[row] !=0){
 				
 				// get cols of nnz from idxs
 		      for (uint32_t i = 0; i < size; ++i)
 					{
 						complex_t accum = zero;
-						for(uint32 j = 0; j < max_number_nonzero; j++)
+						for(uint32 j = 0; j < rhs.max_nnz_in_a_row; j++)
 						{
 							if(non_zero_locations[row][j]!=0)
 							{ 
@@ -103,7 +105,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 						}
 				}
 			}
-			*/
+			//*/
 
 
         complex_t* dst_row = dst.get_row(row);

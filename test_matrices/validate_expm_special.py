@@ -61,7 +61,7 @@ def check_correctness_expm_special(num_qubits=1, print_orig_matrix = False, prin
 		return 1
 	
 check_sum =0
-for q in range(1, 12):
-	for i in range(1, 10): 
+for q in range(1, 5):
+	for i in range(1, 5): 
 		check_sum += check_correctness_expm_special(num_qubits=q)
 print 'Check sum = ', check_sum
