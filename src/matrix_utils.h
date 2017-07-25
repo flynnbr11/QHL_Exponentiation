@@ -15,6 +15,9 @@ typedef __m128d scalar_t;
 typedef __m128d complex_t;
 #define TOLERANCE 1e-15
 
+#define VERBOSE_H 1
+#define COMPRESS 1
+
 inline complex_t load_complex(const complex_t* addr) {
     return _mm_load_pd((const double*)addr);
 }
@@ -75,16 +78,21 @@ public:
     ComplexMatrix()
     : allocated_nnz_array(false), self_allocated(false), num_rows(0), num_cols(0), num_values(0), values(NULL)
     {
+				if(VERBOSE_H) printf("In ComplexMatrix  default constructor  w/ no arguments \n");
     }
     ComplexMatrix(uint32_t rows, uint32_t cols)
     : allocated_nnz_array(false)
     {
+				if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ row and col \n");
         allocate(rows, cols);
     }
     ComplexMatrix(uint32_t rows, uint32_t cols, complex_t* data)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
     {
-        compress_matrix_storage();
+				if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ vals \n");
+    		if(VERBOSE_H) debug_print();     		
+
+        if(COMPRESS) compress_matrix_storage();
     }
     ~ComplexMatrix()
     {
@@ -120,13 +128,8 @@ public:
 			uint32_t running_sum = 0; 
 			for(uint32_t i=0; i<num_cols; i++)
 			{
-				if(::mag_sqr(row_vals[i])> TOLERANCE) // TODO: replace with comparison to complex zero
+				if(::mag_sqr(row_vals[i]) > TOLERANCE) // TODO: replace with comparison to complex zero
 				{
-					/*
-					printf("Row %zu \n", row);
-					printf("Nonzero element at %zu \n", i); 
-					printf("Element = (%lf, %lf) \n", get_real(row_vals[i]), get_imag(row_vals[i]));
-					//*/
 					running_sum += 1;
 				}
 			}
@@ -135,10 +138,10 @@ public:
 		//*/
 
 
-		void compress_matrix_storage()
+		void compress_matrix_storage() 
 		{
-        max_nnz_in_a_row =0;
         complex_t complex_zero = to_complex(0.0, 0.0);
+				
 				if(allocated_nnz_array==1){
 					delete[] num_nonzeros_by_row; 
 
@@ -152,15 +155,22 @@ public:
 				}
 				allocated_nnz_array = 1;
 				num_nonzeros_by_row = new uint32_t[num_rows];
-				for(uint32_t i=0; i<num_rows; i++)
+        max_nnz_in_a_row = 0;
+
+				if(VERBOSE_H) debug_print();
+				
+				for(uint32_t i=0; i<num_rows; i++) // set num_nonzeros_by_row array.
 				{
 					uint32_t this_row_sum = sum_row(i);
+					if(VERBOSE_H) printf("In set num_nonzeros_by_row array. \n \t Row %u has %u NNz elements \n", i, this_row_sum);
 					num_nonzeros_by_row[i]= this_row_sum;
 					if (this_row_sum > max_nnz_in_a_row)
 					{
 						max_nnz_in_a_row = this_row_sum;
 					}
 				}
+				
+				if(VERBOSE_H) printf("---- ---- ----\n");
 				// after max_nnz_in_a_row known, can fill other arrays. 
 
 				nonzero_col_locations = new uint32_t*[num_rows];
@@ -174,33 +184,30 @@ public:
 					const complex_t *this_row = get_row(i);
 					
 					uint32_t k = 0; 
-					for(uint32_t j=0; j< num_cols; j++)
+					for(uint32_t j=0; j < num_cols; j++)
 					{
 						if(::mag_sqr(this_row[j])> TOLERANCE) //::mag_sqr(row_vals[i])> TOLERANCE
 						{
-							//printf("Nonzero location: %zu \t Value: (%lf %lf)\n", j, get_real(this_row[j]), get_imag(this_row[j]));
+							//printf("Nonzero location: %u \t Value: (%lf %lf)\n", j, get_real(this_row[j]), get_imag(this_row[j]));
 							nonzero_col_locations[i][k] = j;
 							nonzero_values[i][k] = this_row[j];
 							k++;
 						}
 					}
-					//printf("%zu nonzero out of %zu \n", k, max_nnz_in_a_row);
+					//printf("%u nonzero out of %u \n", k, max_nnz_in_a_row);
 					for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 					{
-						//printf("l=%zu \n", l);
+						//printf("l=%u \n", l);
 						nonzero_col_locations[i][l] = 0;
 						nonzero_values[i][l] = complex_zero;
 					} 		
 				}
 				
 		}
-
-
-
-
 		
     void allocate(uint32_t rows, uint32_t cols)
     {
+    		if(VERBOSE_H) printf("Allocate fnc has been called \n");
         self_allocated = true;
         num_rows = rows;
         num_cols = cols;
@@ -210,7 +217,7 @@ public:
 #else
         values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
 #endif
-				compress_matrix_storage();
+				if(COMPRESS) compress_matrix_storage();
     }
     void mag_sqr(RealMatrix& dst) const;
     void make_identity();
@@ -235,6 +242,8 @@ private:
         }
 				if(allocated_nnz_array==1){
 					delete[] num_nonzeros_by_row; 
+					delete[] nonzero_col_locations;
+					delete[] nonzero_values; 
 				}
  				allocated_nnz_array= false;
         self_allocated = false;

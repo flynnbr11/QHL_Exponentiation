@@ -9,6 +9,8 @@
 #include <pmmintrin.h>
 #include "matrix_utils.h"
 
+#define VERBOSE 1
+
 void ComplexMatrix::mag_sqr(RealMatrix& dst) const
 {
     const complex_t* psrc = get_row(0);
@@ -49,21 +51,9 @@ void ComplexMatrix::make_zero()
     }
 }
 
-// Optimization notes: tiny changes for 12x speedup
-//
-// These ned to be verified! If I've made a bad assumption, we can probably
-// adjust these.
-//
-// Time to do exp on a 512x512 identity matrix
-// original version: 17.12 seconds
-// With OPT_1:     3.09 seconds (5.5x faster)
-// With OPT_2:     2.93 seconds
-// With OPT_3:     1.41 seconds (12.1x faster)
-#define OPT_1 0
-#define OPT_2 0
-#define OPT_3 0
-#define OPT_4 1 // opt 4 used for development of sparsity utility
-
+#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 0 // opt 4 used for development of sparsity utility
+#define testing_class 1
 // dst = this * rhs
 void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const
 {
@@ -71,60 +61,75 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
+
+#if testing_class 
+		//this -> compress_matrix_storage() const;
+		if (VERBOSE) printf("This Max num nnz : %u \n", this->max_nnz_in_a_row);
+		if (VERBOSE) printf("%u\n", this->max_nnz_in_a_row);
     for (uint32_t row = 0; row < size; ++row)
     {
+			//printf("Self num nnz : %u \n", this->max_nnz_in_a_row);
+			uint32_t row_sum = this->num_nonzeros_by_row[row]; 
+			uint32_t row_sum_fnc = this->sum_row(row); 
+			if (VERBOSE) printf("Row = %u: \t NNz = %u \t Fnc: %u \n", row, row_sum, row_sum_fnc);
+		}
+		if (VERBOSE)
+		{
+			printf("LHS : \n");
+			this -> debug_print();
+			printf("RHS : \n");
+			rhs.debug_print();
+		}
+#else 		
+    for (uint32_t row = 0; row < size; ++row)
+    {
+
 #if OPT_4
+			if (VERBOSE) printf("Self num nnz : %u \n", this->max_nnz_in_a_row);
+			uint32_t row_sum = this->num_nonzeros_by_row[row]; 
+			if (VERBOSE) printf("Row = % zu: NNz = %u \n", row, row_sum);
+			
+//			printf("This num nnz : %u \n", rhs.max_nnz_in_a_row); 
+
 			//printf("opt In 4 development section\n");
-			uint32_t sum_row = rhs.sum_row(row);
-			printf("Row %zu. \n \t Nonzero locations \t Value \n", row);
+			complex_t* dst_row = dst.get_row(row);
+			const complex_t* src1 = get_row(row);
 
-			for (uint32_t j = 0; j<rhs.max_nnz_in_a_row; j++)
+
+			// This should be applied to the self matrix which the multiply method is called on, NOT rhs... 
+			//*
+			if(rhs.num_nonzeros_by_row[row] != 0)
 			{
-				printf("\t %lu \t (%lf, %lf) \n", rhs.nonzero_col_locations[row][j], get_real(rhs.nonzero_values[row][j]), get_imag(rhs.nonzero_values[row][j]));
-			}
-
-			/*
-			if(rhs.num_nonzeros_by_row[row] !=0){
-				
 				// get cols of nnz from idxs
 		      for (uint32_t i = 0; i < size; ++i)
 					{
 						complex_t accum = zero;
-						for(uint32 j = 0; j < rhs.max_nnz_in_a_row; j++)
+						for(uint32_t j = 0; j < rhs.max_nnz_in_a_row; j++)
 						{
-							if(non_zero_locations[row][j]!=0)
+							if(rhs.nonzero_col_locations[row][j]!=0)
 							{ 
-								column_location = non_zero_locations[row][j];
+								uint32_t column_location = rhs.nonzero_col_locations[row][j];
+								// printf("Col loc = %u \n", rhs.nonzero_col_locations[row][j]);
 								if (column_location > row) //only want to do RHS of matrix
 								{
-					        accum = add(accum, mul(src1[i], src2[column_location]));
+			            const complex_t* src2 = rhs.get_row(column_location);
+					        accum = add(accum, mul(src1[i], src2[i]));
 								}
 							}
-				      dst_row[col] = accum;
-				      dst[col][row] = accum * conj; // This * conj may belong on the previous line
+				      dst_row[i] = accum;
+				      dst[i][row] = accum * conj; // This * conj may belong on the previous line
 						}
 				}
 			}
+			else //if entire row was zero, set to zero immediately.
+			{
+	      for (uint32_t i = 0; i < size; ++i)
+				{
+		      dst_row[i] = zero;
+		      dst[i][row] = zero; // This * conj may belong on the previous line
+				}				
+			}
 			//*/
-
-
-        complex_t* dst_row = dst.get_row(row);
-        const complex_t* src1 = get_row(row);
-        for (uint32_t col = row; col < size; ++col)
-        {
-            const complex_t* src2 = rhs.get_row(col);
-            complex_t accum = zero;
-            for (uint32_t i = 0; i < size; ++i)
-            // Add check here whether entries are nnz
-            /*
-            	if(nonzero_elements[row][col] = 1){
-                accum = add(accum, mul(src1[i], src2[i] * conj));
-            	}
-            */
-                accum = add(accum, mul(src1[i], src2[i] * conj));
-            dst_row[col] = accum;
-            dst[col][row] = accum * conj; // This * conj may belong on the previous line
-        }
 #elif OPT_3
 				printf("In opt 3 development section\n");
         // Here we make the assumption that the output will be symmetric across
@@ -142,38 +147,10 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
             dst[col][row] = accum * conj; // This * conj may belong on the previous line
         }
 
-
-#elif OPT_2
-        // Here, we get our row and column pointers outside the inner loop.
-        complex_t* dst_row = dst.get_row(row);
-        const complex_t* src1 = get_row(row);
-        for (uint32_t col = 0; col < size; ++col)
-        {
-            const complex_t* src2 = rhs.get_row(col);
-            complex_t accum = zero;
-            for (uint32_t i = 0; i < size; ++i)
-                accum = add(accum, mul(src1[i], src2[i] * conj));
-            dst_row[col] = accum;
-        }
-#else
-        complex_t* dst_row = dst.get_row(row);
-        for (uint32_t col = 0; col < size; ++col)
-        {
-            complex_t accum = zero;
-            for (uint32_t i = 0; i < size; ++i)
-            {
-# if OPT_1
-                // Here, we make the assumption that rhs is symmetric across
-                // the diagonal, to improve cache coherence greatly.
-                accum = add(accum, mul((*this)[row][i], rhs[col][i] * conj));
-# else
-                accum = add(accum, mul((*this)[row][i], rhs[i][col]));
-# endif
-            }
-            dst_row[col] = accum;
-        }
-#endif
+      } // end for (row) loop
+#endif // end if opt4, opt3 
     }
+#endif // end if testing_class
 }
 
 // this += rhs * scale
@@ -205,15 +182,31 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
         {
             uint32_t alternate = k & 1;
             ComplexMatrix& new_pa = *pa[alternate];
+//            new_pa.compress_matrix_storage(); // Want to compress 
             const ComplexMatrix& old_pa = *pa[1 - alternate];
             if (k > 0)
+            {
+            		if(VERBOSE){
+		          		printf("In expm special; k= %u \n", k);
+		          		printf("Old_pa : \n");
+		          		old_pa.debug_print();
+		          		printf("This Before mult : \n");
+	 	           		this -> debug_print();
+								}
+                
                 old_pa.mul_hermitian(*this, new_pa);
 
+								if(VERBOSE){
+		          		printf("new_pa After mult : \n");
+		          		new_pa.debug_print();
+	          		}
+						}	
             scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial);
             dst.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
         }
         else
         {
+        		
             done = true;
         }
     }
@@ -337,6 +330,8 @@ double do_permanent(const double* mtx_data, uint32_t size)
 
 void ComplexMatrix::debug_print() const
 {
+		printf("---- -- Debug Print-- ----\n");
+
     for (uint32_t row = 0; row < num_rows; ++row)
     {
         const complex_t* prow = get_row(row);
@@ -353,4 +348,5 @@ void ComplexMatrix::debug_print() const
         }
         printf(" |\n");
     }
+	printf("---- ---- ----\n");
 }
