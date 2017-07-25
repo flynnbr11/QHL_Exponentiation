@@ -91,7 +91,6 @@ public:
     {
 				if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ vals \n");
     		if(VERBOSE_H) debug_print();     		
-
         if(COMPRESS) compress_matrix_storage();
     }
     ~ComplexMatrix()
@@ -170,8 +169,7 @@ public:
 					}
 				}
 				
-				if(VERBOSE_H) printf("---- ---- ----\n");
-				// after max_nnz_in_a_row known, can fill other arrays. 
+				// after max_nnz_in_a_row is known, can fill other arrays. 
 
 				nonzero_col_locations = new uint32_t*[num_rows];
 				nonzero_values = new complex_t*[num_rows];
@@ -186,18 +184,15 @@ public:
 					uint32_t k = 0; 
 					for(uint32_t j=0; j < num_cols; j++)
 					{
-						if(::mag_sqr(this_row[j])> TOLERANCE) //::mag_sqr(row_vals[i])> TOLERANCE
+						if(::mag_sqr(this_row[j]) > TOLERANCE) // if element nonzero, add to nonzero_values.  
 						{
-							//printf("Nonzero location: %u \t Value: (%lf %lf)\n", j, get_real(this_row[j]), get_imag(this_row[j]));
 							nonzero_col_locations[i][k] = j;
 							nonzero_values[i][k] = this_row[j];
 							k++;
 						}
 					}
-					//printf("%u nonzero out of %u \n", k, max_nnz_in_a_row);
 					for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 					{
-						//printf("l=%u \n", l);
 						nonzero_col_locations[i][l] = 0;
 						nonzero_values[i][l] = complex_zero;
 					} 		

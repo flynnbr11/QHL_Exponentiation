@@ -85,18 +85,9 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     {
 
 #if OPT_4
-			if (VERBOSE) printf("Self num nnz : %u \n", this->max_nnz_in_a_row);
-			uint32_t row_sum = this->num_nonzeros_by_row[row]; 
-			if (VERBOSE) printf("Row = % zu: NNz = %u \n", row, row_sum);
-			
-//			printf("This num nnz : %u \n", rhs.max_nnz_in_a_row); 
-
-			//printf("opt In 4 development section\n");
 			complex_t* dst_row = dst.get_row(row);
 			const complex_t* src1 = get_row(row);
-
-
-			// This should be applied to the self matrix which the multiply method is called on, NOT rhs... 
+			// TODO: This should be applied to the self matrix which the multiply method is called on, NOT rhs... 
 			//*
 			if(rhs.num_nonzeros_by_row[row] != 0)
 			{
@@ -146,7 +137,6 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
             dst_row[col] = accum;
             dst[col][row] = accum * conj; // This * conj may belong on the previous line
         }
-
       } // end for (row) loop
 #endif // end if opt4, opt3 
     }
