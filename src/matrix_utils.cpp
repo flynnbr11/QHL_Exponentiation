@@ -109,8 +109,30 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 			if(this->num_nonzeros_by_row[row] != 0)
 			{
 		    const complex_t* src1 = get_row(row);
+	    //*
+	    	for (uint32_t col = 0; col<size; ++col)
+	    	{
+	    		complex_t accum = zero;
+	        const complex_t* src2 = rhs.get_row(col);
+	    		
+				  for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
+				  {
+						uint32_t col_loc = this->nonzero_col_locations[row][j];
+						if(col_loc < num_cols)
+						{
+							accum = add(accum, mul(this->nonzero_values[row][j], src2[col_loc]*conj ));					
+						}
+					
+				  }
+		      //dst_row[col] = to_complex(1.0, 1.0);
+		      //dst[col][row] = to_complex(1.0, 1.0); // This * conj may belong on the previous line
+		      dst_row[col] = accum;
+		      dst[col][row] = accum * conj; // This * conj may belong on the previous line
+				}
+
+	    //*/
+	    /*
 		    for (uint32_t col = row; col < size; ++col)
-		    {
 		        const complex_t* src2 = rhs.get_row(col);
 		        complex_t accum = zero;
 		        for (uint32_t i = 0; i < size; ++i)
@@ -118,14 +140,16 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 		        dst_row[col] = accum;
 		        dst[col][row] = accum * conj; // This * conj may belong on the previous line
 		    }
+			//*/
+
     	} // end for (row) loop
 
 			else //if entire row was zero, set to zero immediately.
 			{
-	      for (uint32_t i = 0; i < size; ++i)
+	      for (uint32_t col = 0; col < size; ++col)
 				{
-		      dst_row[i] = zero;
-		      dst[row][i] = zero; // This * conj may belong on the previous line
+		      dst_row[col] = zero;
+		      dst[row][col] = zero; // This * conj may belong on the previous line
 				}				
 			}
 		}
