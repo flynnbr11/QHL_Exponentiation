@@ -11,11 +11,12 @@
 #include <immintrin.h>
 #include <pmmintrin.h>
 #include <random>
+#include <vector>
 typedef __m128d scalar_t;
 typedef __m128d complex_t;
 #define TOLERANCE 1e-15
 
-#define VERBOSE_H 1
+#define VERBOSE_H 0
 #define COMPRESS 1
 
 inline complex_t load_complex(const complex_t* addr) {
@@ -41,7 +42,9 @@ inline const complex_t mul(const complex_t a_b, const complex_t c_d)
     complex_t d_c = _mm_permute_pd(c_d, 1);
     complex_t bc_bd = _mm_mul_pd(b_b, d_c);
     complex_t ad_ac = _mm_mul_pd(a_a, c_d);
-    return _mm_addsub_pd(ad_ac, bc_bd);
+    const complex_t outcome = _mm_addsub_pd(ad_ac, bc_bd);
+		return outcome;
+    //return _mm_addsub_pd(ad_ac, bc_bd);
 }
 inline void muleq(complex_t* a_b, const complex_t c_d)
 {
@@ -90,7 +93,7 @@ public:
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
     {
 				if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ vals \n");
-    		if(VERBOSE_H) debug_print();     		
+    		// if(VERBOSE_H) debug_print();     		
         if(COMPRESS) compress_matrix_storage();
     }
     ~ComplexMatrix()
@@ -156,12 +159,11 @@ public:
 				num_nonzeros_by_row = new uint32_t[num_rows];
         max_nnz_in_a_row = 0;
 
-				if(VERBOSE_H) debug_print();
+				//if(VERBOSE_H) debug_print();
 				
 				for(uint32_t i=0; i<num_rows; i++) // set num_nonzeros_by_row array.
 				{
 					uint32_t this_row_sum = sum_row(i);
-					if(VERBOSE_H) printf("In set num_nonzeros_by_row array. \n \t Row %u has %u NNz elements \n", i, this_row_sum);
 					num_nonzeros_by_row[i]= this_row_sum;
 					if (this_row_sum > max_nnz_in_a_row)
 					{
@@ -193,7 +195,7 @@ public:
 					}
 					for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 					{
-						nonzero_col_locations[i][l] = 0;
+						nonzero_col_locations[i][l] = num_cols; // indicate there is no more non zero elements
 						nonzero_values[i][l] = complex_zero;
 					} 		
 				}
@@ -202,7 +204,6 @@ public:
 		
     void allocate(uint32_t rows, uint32_t cols)
     {
-    		if(VERBOSE_H) printf("Allocate fnc has been called \n");
         self_allocated = true;
         num_rows = rows;
         num_cols = cols;
@@ -217,10 +218,18 @@ public:
     void mag_sqr(RealMatrix& dst) const;
     void make_identity();
     void make_zero();
-    void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) const;
+//    void mul_hermitian(ComplexMatrix& rhs, ComplexMatrix& dst);
+    void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void expm_special(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
+    void print_compressed_storage() const;
+
+    uint32_t max_nnz_in_a_row;
+		uint32_t *num_nonzeros_by_row;
+		uint32_t **nonzero_col_locations;
+		complex_t **nonzero_values;
+
 
 private:
     void destroy()
@@ -249,11 +258,7 @@ private:
     uint32_t num_rows;      // number of rows
     uint32_t num_cols;      // number of columns
     uint32_t num_values;    // num_rows * num_cols 
-    uint32_t max_nnz_in_a_row;
     complex_t* values;      // the actual storage
-		uint32_t *num_nonzeros_by_row;
-		uint32_t **nonzero_col_locations;
-		complex_t **nonzero_values;
 };
 
 class RealMatrix {
