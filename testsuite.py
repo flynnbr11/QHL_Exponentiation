@@ -14,7 +14,7 @@ import random_matrix as rm
 
 mat_size = 2
 mat = np.identity(2**mat_size, dtype=np.complex128)
-#mat = rm.get_matrix(mat_size)
+mat = rm.get_matrix(mat_size)
 print 'Input Matrix : '
 print mat
 print ' --- ----'

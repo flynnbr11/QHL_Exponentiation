@@ -82,25 +82,6 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
 
-#if testing_class 
-		printf("Testing class \n");
-
-		if (print_mul_hermitian)
-		{
-			printf("To multiply : \n");		
-			printf("This : \n");		
-			this -> debug_print();
-			printf("RHS : \n");		
-			rhs.debug_print();
-			
-			printf("This : \n");
-			this -> print_compressed_storage();
-			printf("RHS : \n");
-			rhs.print_compressed_storage();
-		}
-		
-#endif
-
 #if OPT_4
 		printf("OPT 4 \n");
     for (uint32_t row = 0; row < size; ++row)
@@ -108,9 +89,10 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 			complex_t* dst_row = dst.get_row(row);
 			if(this->num_nonzeros_by_row[row] != 0)
 			{
-		    const complex_t* src1 = get_row(row);
+//		    const complex_t* src1 = get_row(row);
 	    //*
-	    	for (uint32_t col = 0; col<size; ++col)
+	    	for (uint32_t col = row; col<size; ++col)
+//	    	for (uint32_t col = 0; col<size; ++col)
 	    	{
 	    		complex_t accum = zero;
 	        const complex_t* src2 = rhs.get_row(col);
@@ -121,27 +103,13 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 						if(col_loc < num_cols)
 						{
 							accum = add(accum, mul(this->nonzero_values[row][j], src2[col_loc]*conj ));					
+//							accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[row][col_loc]*conj ));					
 						}
 					
 				  }
-		      //dst_row[col] = to_complex(1.0, 1.0);
-		      //dst[col][row] = to_complex(1.0, 1.0); // This * conj may belong on the previous line
 		      dst_row[col] = accum;
 		      dst[col][row] = accum * conj; // This * conj may belong on the previous line
 				}
-
-	    //*/
-	    /*
-		    for (uint32_t col = row; col < size; ++col)
-		        const complex_t* src2 = rhs.get_row(col);
-		        complex_t accum = zero;
-		        for (uint32_t i = 0; i < size; ++i)
-		            accum = add(accum, mul(src1[i], src2[i] * conj));
-		        dst_row[col] = accum;
-		        dst[col][row] = accum * conj; // This * conj may belong on the previous line
-		    }
-			//*/
-
     	} // end for (row) loop
 
 			else //if entire row was zero, set to zero immediately.
