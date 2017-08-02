@@ -37,6 +37,7 @@ void ComplexMatrix::make_identity()
     }
 }
 
+/*
 void ComplexMatrix::make_zero()
 {
     complex_t zero = to_complex(0.0, 0.0);
@@ -50,14 +51,26 @@ void ComplexMatrix::make_zero()
         }
     }
 }
+*/
+
+
+void ComplexMatrix::make_zero()
+{
+    complex_t zero = to_complex(0.0, 0.0);
+    for (uint32_t i = 0; i < num_cols*num_rows; ++i)
+    {
+			values[i] = zero;
+    }
+}
+
 
 void ComplexMatrix::print_compressed_storage() const
 {
 	printf("Max nnz in any row : %u \n", max_nnz_in_a_row);
 
-	for(int i=0; i<num_rows; i++){
+	for(uint32_t i=0; i<num_rows; i++){
 		printf("Nonzeros in row %u :\n", i);
-		for(int j=0; j< num_nonzeros_by_row[i]; j++){
+		for(uint32_t j=0; j< num_nonzeros_by_row[i]; j++){
 			printf("Loc :%u, \t", nonzero_col_locations[i][j]);
 			complex_t val = nonzero_values[i][j];
 			printf("Val :%.2f + %.2f i, \n", get_real(val), get_imag(val));
@@ -66,8 +79,8 @@ void ComplexMatrix::print_compressed_storage() const
 
 }
 
-#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
-#define OPT_4 1 // opt 4 used for development of sparsity utility
+#define OPT_3 1 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 0 // opt 4 used for development of sparsity utility
 #define mul_full 0
 
 #define testing_class 0
@@ -75,7 +88,6 @@ void ComplexMatrix::print_compressed_storage() const
 
 // dst = this * rhs
 void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) // changing const of rhs
-//void ComplexMatrix::mul_hermitian(ComplexMatrix& rhs, ComplexMatrix& dst)
 {
     // TODO: take advantage of the fact that these are diagonally semmetrical
     size_t size = num_rows;
@@ -93,7 +105,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 //		    const complex_t* src1 = get_row(row);
 	    	for (uint32_t col = row; col<size; ++col)
 	    	{
-	    		if (rhs.num_nonzeros_by_row[col] !=0) 
+	    		if (rhs.num_nonzeros_by_row[col] != 0) 
 					{
 			      //const complex_t* src2 = rhs.get_row(col);
 		    		complex_t accum = zero;
@@ -101,39 +113,26 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 						for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
 						{
 							uint32_t col_loc = this->nonzero_col_locations[row][j];
-							if(col_loc < num_cols)
+							if(col_loc != num_cols)
 							{
-								for (uint32_t k=0; k< rhs.max_nnz_in_a_row; k++)
+								for (uint32_t k=0; k < rhs.max_nnz_in_a_row; k++)
 								{
 									if (col_loc == rhs.nonzero_col_locations[col][k])
 									{
-//										accum = add(accum, mul(this->nonzero_values[row][j], src2[col_loc]*conj ));					
 										accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj ));					
 									}					
 								}
 							}
 						}
 				    dst_row[col] = accum;
-				    dst[col][row] = accum * conj; // This * conj may belong on the previous line
+				    dst[col][row] = accum * conj; 
 					}
 				}
     	} // end for (row) loop
 
-			/* // If make_zero called at start, do not need to do this - save extra writes.
-			else //if entire row was zero, set to zero immediately.
-			{
-	      for (uint32_t col = 0; col < size; ++col)
-				{
-		      dst_row[col] = zero;
-		      dst[row][col] = zero; // This * conj may belong on the previous line
-				}				
-			}
-			*/
 		}
 
-			//*/
 #elif OPT_3
-		printf("OPT 3 \n");
 
 		for (uint32_t row = 0; row < size; ++row)
 		{

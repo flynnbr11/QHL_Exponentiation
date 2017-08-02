@@ -14,7 +14,7 @@
 #include <vector>
 typedef __m128d scalar_t;
 typedef __m128d complex_t;
-#define TOLERANCE 1e-15
+#define TOLERANCE 1e-25
 
 #define VERBOSE_H 0
 #define COMPRESS 1
