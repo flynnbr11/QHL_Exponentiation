@@ -87,7 +87,7 @@ def check_correctness_expm_special(num_qubits=1, print_orig_matrix = False, prin
 check_sum =0
 max_diff_all=0
 for q in range(1, 8):
-	for i in range(1, 10): 
+	for i in range(1, 4): 
 		current = check_correctness_expm_special(num_qubits=q)
 		if current > max_diff_all:
 			max_diff_all = current

@@ -218,7 +218,6 @@ public:
     void mag_sqr(RealMatrix& dst) const;
     void make_identity();
     void make_zero();
-//    void mul_hermitian(ComplexMatrix& rhs, ComplexMatrix& dst);
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void expm_special(ComplexMatrix& dst, double precision) const;

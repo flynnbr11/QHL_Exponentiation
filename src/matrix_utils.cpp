@@ -81,37 +81,45 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
-
+		
 #if OPT_4
-		printf("OPT 4 \n");
+		// printf("OPT 4 \n");
+		dst.make_zero();
     for (uint32_t row = 0; row < size; ++row)
     {
-			complex_t* dst_row = dst.get_row(row);
 			if(this->num_nonzeros_by_row[row] != 0)
 			{
+				complex_t* dst_row = dst.get_row(row);
 //		    const complex_t* src1 = get_row(row);
-	    //*
 	    	for (uint32_t col = row; col<size; ++col)
-//	    	for (uint32_t col = 0; col<size; ++col)
 	    	{
-	    		complex_t accum = zero;
-	        const complex_t* src2 = rhs.get_row(col);
-	    		
-				  for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
-				  {
-						uint32_t col_loc = this->nonzero_col_locations[row][j];
-						if(col_loc < num_cols)
+	    		if (rhs.num_nonzeros_by_row[col] !=0) 
+					{
+			      //const complex_t* src2 = rhs.get_row(col);
+		    		complex_t accum = zero;
+			  		
+						for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
 						{
-							accum = add(accum, mul(this->nonzero_values[row][j], src2[col_loc]*conj ));					
-//							accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[row][col_loc]*conj ));					
+							uint32_t col_loc = this->nonzero_col_locations[row][j];
+							if(col_loc < num_cols)
+							{
+								for (uint32_t k=0; k< rhs.max_nnz_in_a_row; k++)
+								{
+									if (col_loc == rhs.nonzero_col_locations[col][k])
+									{
+//										accum = add(accum, mul(this->nonzero_values[row][j], src2[col_loc]*conj ));					
+										accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj ));					
+									}					
+								}
+							}
 						}
-					
-				  }
-		      dst_row[col] = accum;
-		      dst[col][row] = accum * conj; // This * conj may belong on the previous line
+				    dst_row[col] = accum;
+				    dst[col][row] = accum * conj; // This * conj may belong on the previous line
+					}
 				}
     	} // end for (row) loop
 
+			/* // If make_zero called at start, do not need to do this - save extra writes.
 			else //if entire row was zero, set to zero immediately.
 			{
 	      for (uint32_t col = 0; col < size; ++col)
@@ -120,6 +128,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 		      dst[row][col] = zero; // This * conj may belong on the previous line
 				}				
 			}
+			*/
 		}
 
 			//*/
@@ -190,31 +199,19 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
         {
             uint32_t alternate = k & 1;
             ComplexMatrix& new_pa = *pa[alternate];
-//            new_pa.compress_matrix_storage(); // Want to compress 
             ComplexMatrix& old_pa = *pa[1 - alternate];
             if (k > 0)
             {
-            		if(VERBOSE){
-		          		printf("In expm special; k= %u \n", k);
-		          		printf("Old_pa : \n");
-		          		old_pa.debug_print();
-		          		printf("This Before mult : \n");
-	 	           		this -> debug_print();
-								}
-                
-                old_pa.mul_hermitian(*this, new_pa);
+                //new_pa.compress_matrix_storage();
+                old_pa.compress_matrix_storage();
 
-								if(VERBOSE){
-		          		printf("new_pa After mult : \n");
-		          		new_pa.debug_print();
-	          		}
+                old_pa.mul_hermitian(*this, new_pa);
 						}	
             scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial);
             dst.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
         }
         else
         {
-        		
             done = true;
         }
     }
