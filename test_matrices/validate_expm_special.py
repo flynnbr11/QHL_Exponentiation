@@ -6,7 +6,7 @@ import time as time
 import matplotlib.pyplot as plt 
 import numpy as np
 import sys
-import matrix_utils as mu
+import hamiltonian_exponentiation as ham_exp
 import random_matrix as rm
 np.set_printoptions(threshold=np.inf)
 
@@ -21,7 +21,7 @@ def check_correctness_expm_special(num_qubits=1, print_orig_matrix = False, prin
 	#sparse_mtx = scipy.sparse.csc_matrix(mtx)
 	#scipy_output = scipy.sparse.linalg.expm(sparse_mtx)
 
-	expm_special_output = mu.expm_special(mtx)
+	expm_special_output = ham_exp.expn_hamilt(mtx)
 	#sparse_expm_special_output = scipy.sparse.csc_matrix(expm_special_output)
 
 
