@@ -1,0 +1,156 @@
+--------------------------------------------------------------------------------
+Profile data file 'callgrind.out.8924' (creator: callgrind-3.11.0)
+--------------------------------------------------------------------------------
+I1 cache: 
+D1 cache: 
+LL cache: 
+Timerange: Basic block 0 - 16954214
+Trigger: Program termination
+Profiled target:  ./build_class (PID 8924, part 1)
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Thresholds:       99
+Include dirs:     
+User annotated:   
+Auto-annotation:  off
+
+--------------------------------------------------------------------------------
+        Ir 
+--------------------------------------------------------------------------------
+85,496,063  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+        Ir  file:function
+--------------------------------------------------------------------------------
+
+15,199,906  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc (211047x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+     1,039  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc_hook_ini (1x)
+15,079,094  *  /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_malloc [/lib/x86_64-linux-gnu/libc-2.23.so]
+       937  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:sysmalloc (5x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+   120,914  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc_consolidate (38x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+14,624,496  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:free (195014x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+14,491,228  *  /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_free [/lib/x86_64-linux-gnu/libc-2.23.so]
+   131,985  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc_consolidate (32x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+     1,283  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:systrim.isra.2 (32x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+11,243,227  *  matrix_utils.h:ComplexMatrix::expm_special(ComplexMatrix&, double) const
+   647,478  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:memalign (2000x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+   393,270  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:free (1999x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+20,071,896  >   ???:operator delete[](void*) (192999x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+27,823,720  >   ???:operator new[](unsigned long) (209000x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+     4,098  >   /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (2x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+
+       186  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:memalign_hook_ini (1x)
+24,279,300  < ???:operator new(unsigned long) (209044x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+    10,918  < ???:0x00000000051e18a0 (1x) [???]
+    59,687  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+   617,664  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:memalign (2001x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+ 9,708,174  *  /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc [/lib/x86_64-linux-gnu/libc-2.23.so]
+    59,675  >   /build/glibc-bfm8X4/glibc-2.23/malloc/hooks.c:malloc_hook_ini (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+15,199,906  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_malloc (211047x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+15,708,000  < matrix_utils.cpp:ComplexMatrix::expm_special(ComplexMatrix&, double) const (17000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+ 8,976,000  *  matrix_utils.cpp:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+
+       260  < matrix_utils.h:ComplexMatrix::destroy() (2x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+       230  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (2x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+19,301,100  < ???:operator delete(void*) (193011x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+   393,270  < matrix_utils.h:ComplexMatrix::expm_special(ComplexMatrix&, double) const (1999x)
+ 5,070,364  *  /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:free [/lib/x86_64-linux-gnu/libc-2.23.so]
+14,624,496  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_free (195014x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+ 4,158,000  < matrix_utils.cpp:ComplexMatrix::expm_special(ComplexMatrix&, double) const (18000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+ 4,158,000  *  matrix_utils.cpp:ComplexMatrix::add_scaled_hermitian(ComplexMatrix const&, double __vector(2) const&) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+
+       207  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+26,787,621  < ???:operator new[](unsigned long) (209043x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+ 2,508,528  *  ???:operator new(unsigned long) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+24,279,300  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc (209044x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+ 2,146,000  *  /usr/lib/gcc/x86_64-linux-gnu/5/include/emmintrin.h:ComplexMatrix::expm_special(ComplexMatrix&, double) const
+
+ 2,040,000  *  /usr/lib/gcc/x86_64-linux-gnu/5/include/pmmintrin.h:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&)
+
+ 2,040,000  *  /usr/lib/gcc/x86_64-linux-gnu/5/include/avxintrin.h:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&)
+
+ 1,972,000  *  matrix_utils.h:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&)
+
+       808  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+     2,332  < matrix_utils.h:main (11x)
+27,823,720  < matrix_utils.h:ComplexMatrix::expm_special(ComplexMatrix&, double) const (209000x)
+     6,784  < matrix_utils.h:ComplexMatrix::compress_matrix_storage() (32x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+ 1,045,224  *  ???:operator new[](unsigned long) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+       799  >   /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+26,787,621  >   ???:operator new(unsigned long) (209043x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+
+    14,985  < /build/glibc-bfm8X4/glibc-2.23/elf/../elf/dl-runtime.c:_dl_fixup (18x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+ 1,597,972  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-machine.h:_dl_relocate_object (2010x)
+   890,204  *  /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:_dl_lookup_symbol_x [/lib/x86_64-linux-gnu/ld-2.23.so]
+   722,753  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:do_lookup_x (2028x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+
+   680,000  *  /usr/lib/gcc/x86_64-linux-gnu/5/include/emmintrin.h:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&)
+
+   631,000  *  matrix_utils.cpp:ComplexMatrix::expm_special(ComplexMatrix&, double) const [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+   152,000  >   matrix_utils.cpp:ComplexMatrix::make_zero() (1000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+ 4,158,000  >   matrix_utils.cpp:ComplexMatrix::add_scaled_hermitian(ComplexMatrix const&, double __vector(2) const&) (18000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+   402,000  >   matrix_utils.cpp:ComplexMatrix::make_identity() (2000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+15,708,000  >   matrix_utils.cpp:ComplexMatrix::mul_hermitian(ComplexMatrix const&, ComplexMatrix&) (17000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+
+   722,753  < /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:_dl_lookup_symbol_x (2028x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+   553,198  *  /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:do_lookup_x [/lib/x86_64-linux-gnu/ld-2.23.so]
+   157,113  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:check_match (2008x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+       244  >   /build/glibc-bfm8X4/glibc-2.23/elf/rtld.c:rtld_lock_default_unlock_recursive (122x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+       244  >   /build/glibc-bfm8X4/glibc-2.23/elf/rtld.c:rtld_lock_default_lock_recursive (122x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+       149  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-misc.c:_dl_higher_prime_number (2x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+     8,965  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-misc.c:_dl_name_match_p (102x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+       165  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-minimal.c:calloc (3x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+        12  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-minimal.c:free (2x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+     2,663  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/../strcmp.S:strcmp (40x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+
+19,687,122  < ???:operator delete[](void*) (193011x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+     1,317  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+   386,028  *  ???:operator delete(void*) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+19,301,100  >   /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:free (193011x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+     1,311  >   /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+
+20,071,896  < matrix_utils.h:ComplexMatrix::expm_special(ComplexMatrix&, double) const (192999x)
+     1,915  < /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+     1,248  < matrix_utils.h:ComplexMatrix::destroy() (12x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+   386,028  *  ???:operator delete[](void*) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+     1,909  >   /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-trampoline.h:_dl_runtime_resolve_avx'2 (1x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+19,687,122  >   ???:operator delete(void*) (193011x) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.21]
+
+   402,000  < matrix_utils.cpp:ComplexMatrix::expm_special(ComplexMatrix&, double) const (2000x) [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+   302,000  *  matrix_utils.cpp:ComplexMatrix::make_identity() [/home/brian/qecdt/projectB/QHL_Exponentiation/src/build_class]
+
+   120,914  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_malloc (38x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+   131,985  < /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:_int_free (32x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+   252,899  *  /build/glibc-bfm8X4/glibc-2.23/malloc/malloc.c:malloc_consolidate [/lib/x86_64-linux-gnu/libc-2.23.so]
+
+   251,922  *  /build/glibc-bfm8X4/glibc-2.23/elf/../sysdeps/x86_64/dl-machine.h:_dl_relocate_object
+ 1,597,972  >   /build/glibc-bfm8X4/glibc-2.23/elf/dl-lookup.c:_dl_lookup_symbol_x (2010x) [/lib/x86_64-linux-gnu/ld-2.23.so]
+         8  >   ???:sin (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         8  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/e_exp.c:__exp_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         8  >   ???:__log_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+        11  >   ???:memcpy@GLIBC_2.2.5 (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+         6  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/strcspn.S:strpbrk (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/e_asin.c:__acos_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/strcmp.S:strcasecmp (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_rintf.S:rintf (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_ceil.S:ceil (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         8  >   ???:__atan2_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         6  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/strspn.S:strspn (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+        66  >   /build/glibc-bfm8X4/glibc-2.23/time/../sysdeps/unix/sysv/linux/x86/gettimeofday.c:gettimeofday (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+         8  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_sin.c:cos (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/e_asin.c:__asin_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         6  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/strcspn.S:strcspn (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_ceilf.S:ceilf (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/e_pow.c:__pow_finite (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_rint.S:rint (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_floor.S:floor (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/math/../sysdeps/x86_64/fpu/multiarch/s_floorf.S:floorf (1x) [/lib/x86_64-linux-gnu/libm-2.23.so]
+         5  >   /build/glibc-bfm8X4/glibc-2.23/string/../sysdeps/x86_64/multiarch/strcmp.S:strncasecmp (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+        66  >   /build/glibc-bfm8X4/glibc-2.23/time/../sysdeps/unix/sysv/linux/x86/time.c:time (1x) [/lib/x86_64-linux-gnu/libc-2.23.so]
+

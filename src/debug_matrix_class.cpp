@@ -3,7 +3,7 @@
 int main(){
 
   complex_t conj = to_complex(1.0, -1.0);
-	const int size =4;
+	int size =4;
 	const int num = size*size;
 	complex_t mtx_data[size][size]; 
 	complex_t mtx_mul_data[size][size];
@@ -42,9 +42,15 @@ int main(){
 		}
 	}
 
-	ComplexMatrix test_matrix(size, size, mtx_data_ptr);
+//	ComplexMatrix test_matrix(size, size, mtx_data_ptr);
 	ComplexMatrix mult_mtx(size, size, mtx_mul_data_ptr);
   ComplexMatrix dest(size, size);
+
+	size = 16;
+	ComplexMatrix test_matrix(size, size);
+	test_matrix.make_identity();
+
+
 	
 /*
 	printf("Multiplying This : \n");
@@ -60,7 +66,9 @@ int main(){
 */
 	ComplexMatrix after_expm(size, size);
 	//test_matrix.make_identity();	
-	test_matrix.expm_special(after_expm, 1e-15);
+	for(int i=0; i<1000;i++){
+		test_matrix.expm_special(test_matrix, 1e-15);
+	}
 	printf("Matrix to exponentiate: \n");
 	test_matrix.debug_print();
 	printf("Exponentiated: \n");

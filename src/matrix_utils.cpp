@@ -10,6 +10,19 @@
 #include "matrix_utils.h"
 
 #define VERBOSE 0
+/*
+TODO:
+	* Add flag/switch for format of input matrix
+		** Completely filled
+			*** Run compress() to format for use in exponentiation
+		** Compressed
+			*** Accept directly from Python in CSC/CSR format 
+			*** Place in class elements here for mul_hermitian and exponentiation utilities. 
+
+	* Possibly have function hamiltonian_exponentiation(input_format)
+		** input_format = { completely_filled, python_scipy_csc, python_scipy_csr, etc}
+*/
+
 
 void ComplexMatrix::mag_sqr(RealMatrix& dst) const
 {

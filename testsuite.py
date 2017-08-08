@@ -20,7 +20,7 @@ print mat
 print ' --- ----'
 
 t_start = time.time()
-emat = mu.expm_special(mat)
+emat = mu.expn_hamilt(mat)
 t_end = time.time()
 
 

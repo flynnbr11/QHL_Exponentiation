@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import scipy as sp
 from scipy import linalg 
@@ -5,6 +6,8 @@ import time as time
 import matrix_utils as mu
 import random_matrix as rm
 import matplotlib.pyplot as plt
+
+
 
 # matrix_size: how many qubits. matrix will be square of 2^size X 2^size
 #matrix_sizes = [1,2,3]

@@ -16,13 +16,13 @@ def check_correctness_expm_special(num_qubits=1, print_orig_matrix = False, prin
 	mtx= rm.get_matrix(size)
 
 	linalg_output=scipy.linalg.expm(mtx)
-	sparse_linalg_output = scipy.sparse.csc_matrix(linalg_output)
+	#sparse_linalg_output = scipy.sparse.csc_matrix(linalg_output)
 
-	sparse_mtx = scipy.sparse.csc_matrix(mtx)
-	scipy_output = scipy.sparse.linalg.expm(sparse_mtx)
+	#sparse_mtx = scipy.sparse.csc_matrix(mtx)
+	#scipy_output = scipy.sparse.linalg.expm(sparse_mtx)
 
 	expm_special_output = mu.expm_special(mtx)
-	sparse_expm_special_output = scipy.sparse.csc_matrix(expm_special_output)
+	#sparse_expm_special_output = scipy.sparse.csc_matrix(expm_special_output)
 
 
 	if print_orig_matrix is True: 	
@@ -86,8 +86,8 @@ def check_correctness_expm_special(num_qubits=1, print_orig_matrix = False, prin
 
 check_sum =0
 max_diff_all=0
-for q in range(1, 5):
-	for i in range(1, 7): 
+for q in range(1, 12):
+	for i in range(1, 10): 
 		current = check_correctness_expm_special(num_qubits=q)
 		if current > max_diff_all:
 			max_diff_all = current

@@ -1,5 +1,5 @@
 from setuptools import setup, Extension
-#from distutils.core import setup, Extension
+from distutils.core import setup, Extension
 import numpy
 import time
 
@@ -14,8 +14,6 @@ Note: on OSX you must do this:
 # to build:       python ./setup.py build
 # to install:     python ./setup.py install
 # to develop:     python ./setup.py develop
-
-
 
 ####################################################################
 # Safety code to prevent accidental uploading of ths private project
@@ -34,7 +32,7 @@ forbid_publish()
 
 
 
-libmatrix_utils = Extension("matrix_utils.libmatrix_utils",
+libmatrix_utils = Extension("libmatrix_utils",
                 [
                  "./src/matrix_utils.cpp", 
                  "./src/python_interface.cpp", 
@@ -44,12 +42,12 @@ libmatrix_utils = Extension("matrix_utils.libmatrix_utils",
                 include_dirs=["src/", "/usr/include/python2.7", numpy.get_include()]
                 )
 
-setup(name="matrix_utils",
+setup(name="hamiltonian_exponentiation",
       version=time.strftime('%Y.%m.%d.%H.%M'),
-      packages = ["matrix_utils"],
+      packages = ["hamiltonian_exponentiation"],
       ext_modules=[libmatrix_utils],
       author="University of Bristol",
-      author_email="(add email address here)",
+      author_email="brian.flynn@bristol.ac.uk",
       url="(add URL here)",
       description="Some matrix utilities.",
       )
