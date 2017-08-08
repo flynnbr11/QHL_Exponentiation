@@ -48,6 +48,6 @@ setup(name="hamiltonian_exponentiation",
       ext_modules=[libmatrix_utils],
       author="University of Bristol",
       author_email="brian.flynn@bristol.ac.uk",
-      url="(add URL here)",
-      description="Some matrix utilities.",
+      url="https://github.com/flynnbr11/QHL_Exponentiation",
+      description="Module for exponentiating Hamiltonian matrices, which must be Hermitian.",
       )
