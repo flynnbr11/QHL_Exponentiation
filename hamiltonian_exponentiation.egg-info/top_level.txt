@@ -1,2 +1,0 @@
-hamiltonian_exponentiation
-libmatrix_utils

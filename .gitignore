@@ -1,14 +1,14 @@
 build/
 data/evo_matrices_dims4-1024.dat
+*.egg-info/*
+test_matrices/*
+dist/*
+
 *.pyc
 *.so
 *.csv
 *.png
 *.jpg
-matrix_utils.egg-info/
-
-test_matrices/*
 
 !test_matrices/validate_expm_special.py
-!test_matrices/random_matrix.py
 !test_matrices/plot_expm.py

@@ -1,8 +1,0 @@
-setup.py
-./src/matrix_utils.cpp
-./src/python_interface.cpp
-hamiltonian_exponentiation/__init__.py
-hamiltonian_exponentiation.egg-info/PKG-INFO
-hamiltonian_exponentiation.egg-info/SOURCES.txt
-hamiltonian_exponentiation.egg-info/dependency_links.txt
-hamiltonian_exponentiation.egg-info/top_level.txt
