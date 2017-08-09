@@ -1,5 +1,0 @@
-Note that boost has been added to use tuples in c++. 
-To add boost locally, visit https://dl.bintray.com/boostorg/release/1.64.0/source/
-
-and install via sudo apt-get install libboost-all-dev
-

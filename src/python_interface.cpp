@@ -16,6 +16,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
+
 std::string test_expm()
 {
     uint32_t matrix_size = 8;
@@ -110,8 +111,13 @@ static PyMethodDef matrix_utils_methods[] = {
 };
 
 static PyObject *theError;
+
+#if PY_MAJOR_VERSION == 2
 PyMODINIT_FUNC initlibmatrix_utils(void)
 {
+	int python_version = PY_MAJOR_VERSION;
+	printf("\n \n \n \n \n Python version : %d \n \n \n \n \n ", python_version);
+
     PyObject *m;
 
     m = Py_InitModule("libmatrix_utils", matrix_utils_methods);
@@ -124,6 +130,38 @@ PyMODINIT_FUNC initlibmatrix_utils(void)
     Py_INCREF(theError);
     PyModule_AddObject(m, "error", theError);
 }
+//*/
 
+/* Python3.5 C++ interface: Py_InitModule deprecated; use PyModuleDef and PyModule_Create instead */
 
+//*
+#elif PY_MAJOR_VERSION == 3
 
+static struct PyModuleDef libmatrix_utils =
+{
+	PyModuleDef_HEAD_INIT,
+	"libmatrix_utils",
+	"Matrix Utilities",
+	-1,
+	matrix_utils_methods
+};
+
+PyMODINIT_FUNC PyInit_libmatrix_utils(void)
+{
+    PyObject *m;
+
+    m = PyModule_Create(&libmatrix_utils);
+	
+	if (m == NULL)
+        return NULL;
+
+    import_array();
+
+    theError = PyErr_NewException((char*)"libmatrix_utils.error", NULL, NULL);
+    Py_INCREF(theError);
+    PyModule_AddObject(m, "error", theError);
+    return m;
+}
+//*/
+
+#endif

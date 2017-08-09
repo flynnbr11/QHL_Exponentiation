@@ -92,8 +92,8 @@ void ComplexMatrix::print_compressed_storage() const
 
 }
 
-#define OPT_3 1 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
-#define OPT_4 0 // opt 4 used for development of sparsity utility
+#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 1 // opt 4 used for development of sparsity utility
 #define mul_full 0
 
 #define testing_class 0
