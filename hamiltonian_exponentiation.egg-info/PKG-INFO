@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: hamiltonian-exponentiation
+Version: 2017.8.9.18.36
+Summary: Module for exponentiating Hamiltonian matrices, which must be Hermitian.
+Home-page: https://github.com/flynnbr11/QHL_Exponentiation
+Author: University of Bristol
+Author-email: brian.flynn@bristol.ac.uk
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN

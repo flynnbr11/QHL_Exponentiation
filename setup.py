@@ -22,7 +22,8 @@ if python_version == 2:
 
 	####################################################################
 	# Safety code to prevent accidental uploading of ths private project
-	import sys
+	"""
+	# forbid publication for private applications
 	def forbid_publish():
 		argv = sys.argv
 		blacklist = ['register', 'upload']
@@ -34,7 +35,7 @@ if python_version == 2:
 		              values)
 		        sys.exit(2)
 	forbid_publish()
-
+	"""
 	libmatrix_utils = Extension("libmatrix_utils",
 		            [
 		             "./src/matrix_utils.cpp", 

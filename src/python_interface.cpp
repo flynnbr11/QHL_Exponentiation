@@ -148,16 +148,20 @@ static struct PyModuleDef libmatrix_utils =
 
 PyMODINIT_FUNC PyInit_libmatrix_utils(void)
 {
-	int python_version = PY_MAJOR_VERSION;
-	printf("\n \n \n \n \n Python version : %d \n \n \n \n \n ", python_version);
     PyObject *m;
 
-	m = PyModule_Create(&libmatrix_utils);
-    import_array();
+    m = PyModule_Create(&libmatrix_utils);
 	
-	theError = PyErr_NewException((char*)"libmatrix_utils.error", NULL, NULL);
-	Py_INCREF(theError);
-	PyModule_AddObject(m, "error", theError);
+	if (m == NULL)
+        return NULL;
+
+    import_array();
+
+    theError = PyErr_NewException((char*)"libmatrix_utils.error", NULL, NULL);
+    Py_INCREF(theError);
+    PyModule_AddObject(m, "error", theError);
+    return m;
 }
 //*/
+
 #endif
