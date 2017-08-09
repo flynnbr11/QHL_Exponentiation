@@ -3,6 +3,7 @@ data/evo_matrices_dims4-1024.dat
 *.egg-info/*
 test_matrices/*
 dist/*
+QML_Lib/*
 
 *.pyc
 *.so
