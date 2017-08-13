@@ -66,9 +66,14 @@ int main(){
 */
 	ComplexMatrix after_expm(size, size);
 	//test_matrix.make_identity();	
+	/*
 	for(int i=0; i<1000;i++){
-		test_matrix.expm_special(test_matrix, 1e-15);
-	}
+		test_matrix.expm_special(after_expm, 1e-15);
+	}*/
+	
+	test_matrix.make_identity();
+	after_expm.make_zero();
+	test_matrix.expm_special(after_expm, 1e-15);
 	printf("Matrix to exponentiate: \n");
 	test_matrix.debug_print();
 	printf("Exponentiated: \n");

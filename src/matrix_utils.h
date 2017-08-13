@@ -26,6 +26,8 @@ inline scalar_t to_scalar(double rhs) { return _mm_set_pd(rhs, rhs); }
 inline complex_t to_complex(double r, double i) { return _mm_set_pd(i, r); }
 inline double get_real(const complex_t c) { return ((double*)&c)[0]; }
 inline double get_imag(const complex_t c) { return ((double*)&c)[1]; }
+inline double get_scalar_val_0(const scalar_t c) {return ((double*)&c)[0];}
+inline double get_scalar_val_1(const scalar_t c) {return ((double*)&c)[1];}
 
 inline complex_t complex_conjugate(const complex_t& c) { return to_complex(get_real(c), -get_imag(c)); }
 inline const complex_t add(const complex_t lhs, const complex_t rhs) { return _mm_add_pd(lhs, rhs); }
@@ -157,7 +159,7 @@ public:
 				}
 				allocated_nnz_array = 1;
 				num_nonzeros_by_row = new uint32_t[num_rows];
-        max_nnz_in_a_row = 0;
+    			max_nnz_in_a_row = 0;
 
 				//if(VERBOSE_H) debug_print();
 				
@@ -220,7 +222,9 @@ public:
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+    void add_hermitian(const ComplexMatrix& rhs);
     void expm_special(ComplexMatrix& dst, double precision) const;
+    void cos_plus_i_sin(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
     void print_compressed_storage() const;
 

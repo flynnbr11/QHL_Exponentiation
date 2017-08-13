@@ -45,7 +45,7 @@ std::string test_expm()
 
 
     mat.debug_print();
-    return "ok";
+    return "ok: test_expm";
 }
 
 
@@ -100,14 +100,66 @@ static PyObject* ExpmSpecial(PyObject *self, PyObject *args)
 
     src.expm_special(dst, precision);
 
-    result_str = "ok";
+    result_str = "ok: ExpmSpecial";
+    return Py_BuildValue("s", result_str.c_str());
+}
+
+
+static PyObject* ExpiHamiltonian(PyObject *self, PyObject *args)
+{
+    std::string result_str;
+    double precision = 0.0f;
+    PyArrayObject* src_matrix;
+    PyArrayObject* dst_matrix;
+
+    if (!PyArg_ParseTuple(args, "O!O!d", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &precision))
+    {
+        fprintf(stderr, "Error: expm_special() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
+        return NULL;
+    }
+
+    size_t src_rows = (size_t)PyArray_DIM(src_matrix, 0);
+    size_t src_cols = (size_t)PyArray_DIM(src_matrix, 1);
+    size_t dst_rows = (size_t)PyArray_DIM(dst_matrix, 0);
+    size_t dst_cols = (size_t)PyArray_DIM(dst_matrix, 1);
+    size_t src_stride = PyArray_STRIDES(src_matrix)[0];
+    size_t dst_stride = PyArray_STRIDES(dst_matrix)[0];
+    bool   src_is_complex = PyArray_ISCOMPLEX(src_matrix);
+    bool   dst_is_complex = PyArray_ISCOMPLEX(dst_matrix);
+    complex_t* src_ptr = (complex_t*)PyArray_DATA(src_matrix);
+    complex_t* dst_ptr = (complex_t*)PyArray_DATA(dst_matrix);
+    const char* error_str = NULL;
+
+    // Check the matrces
+    if (src_rows != src_cols || dst_rows != dst_cols)
+        error_str = "Src and dest matrices must be square";
+    if (src_rows != dst_rows || src_cols != dst_cols)
+        error_str = "Src and dest matrices must be the same size";
+    if (!src_is_complex || !dst_is_complex)
+        error_str = "Src and dest matrices must be complex double-precision float";
+    if (src_stride != src_cols * sizeof(complex_t) || dst_stride != dst_cols * sizeof(complex_t))
+        error_str = "Unexpected stride length; matrices may not be packed complex double";
+    if (error_str)
+    {
+        fprintf(stderr, "Error: %s, at %s %s:%d\n", error_str, __FUNCTION__, __FILE__, __LINE__);
+        return NULL;
+    }
+
+    const ComplexMatrix src(src_rows, src_cols, src_ptr);
+    ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
+
+    src.cos_plus_i_sin(dst, precision);
+
+    result_str = "ok: Cos + i Sin";
     return Py_BuildValue("s", result_str.c_str());
 }
 
 static PyMethodDef matrix_utils_methods[] = {
     {"simple_test",             SimpleTest,                 METH_VARARGS, "Just a test."},
-    {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
+//    {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
+//    {"exp_i_mtx",               ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
+			{"expm_special_cpp",               ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
+      {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 static PyObject *theError;

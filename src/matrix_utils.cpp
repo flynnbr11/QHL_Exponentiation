@@ -92,8 +92,8 @@ void ComplexMatrix::print_compressed_storage() const
 
 }
 
-#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
-#define OPT_4 1 // opt 4 used for development of sparsity utility
+#define OPT_3 1 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 0 // opt 4 used for development of sparsity utility
 #define mul_full 0
 
 #define testing_class 0
@@ -106,6 +106,13 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
+
+		/*
+		printf("Multiplying this : \n");
+		this->debug_print();
+		printf("by this : \n");
+		rhs.debug_print();
+		//*/
 		
 #if OPT_4
 		// printf("OPT 4 \n");
@@ -115,13 +122,13 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 			if(this->num_nonzeros_by_row[row] != 0)
 			{
 				complex_t* dst_row = dst.get_row(row);
-//		    const complex_t* src1 = get_row(row);
-	    	for (uint32_t col = row; col<size; ++col)
-	    	{
-	    		if (rhs.num_nonzeros_by_row[col] != 0) 
+//			    const complex_t* src1 = get_row(row);
+				for (uint32_t col = row; col<size; ++col)
+				{
+					if (rhs.num_nonzeros_by_row[col] != 0) 
 					{
-			      //const complex_t* src2 = rhs.get_row(col);
-		    		complex_t accum = zero;
+				  //	const complex_t* src2 = rhs.get_row(col);
+						complex_t accum = zero;
 			  		
 						for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
 						{
@@ -137,11 +144,11 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 								}
 							}
 						}
-				    dst_row[col] = accum;
-				    dst[col][row] = accum * conj; 
+						dst_row[col] = accum;
+						dst[col][row] = accum * conj; 
 					}
-				}
-    	} // end for (row) loop
+					}
+				} // end for (row) loop
 
 		}
 
@@ -179,7 +186,12 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 			}
 		}
 #endif // end if opt4, opt3 
+	/*
+	printf("Setting desination matrix: \n");
+	dst.debug_print();
+	//*/
 }
+
 
 
 // this += rhs * scale
@@ -189,6 +201,13 @@ void ComplexMatrix::add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_
     for (size_t i = 0; i < num_rows * num_rows; ++i)
         values[i] = add(values[i], mul_scalar(rhs.values[i], scale));
 }
+
+void ComplexMatrix::add_hermitian(const ComplexMatrix& rhs)
+{
+	for(size_t i = 0; i<num_rows*num_cols; i++)
+		values[i] = add(values[i], rhs.values[i]);
+}
+
 
 void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
 {
@@ -220,6 +239,8 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
                 old_pa.mul_hermitian(*this, new_pa);
 						}	
             scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial);
+            
+            
             dst.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
         }
         else
@@ -229,6 +250,147 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
     }
 }
 
+void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
+{
+    // To avoid extra copying, we alternate power accumulation matrices
+    ComplexMatrix power_accumulator0(num_rows, num_cols);
+    ComplexMatrix power_accumulator1(num_rows, num_cols);
+    ComplexMatrix sin(num_rows, num_cols);
+    ComplexMatrix cos(num_rows, num_cols);
+    power_accumulator0.make_identity();
+    power_accumulator1.make_identity();
+ 
+    ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
+
+		ComplexMatrix identity(num_rows, num_cols);
+		identity.make_identity();
+
+		ComplexMatrix empty_matrix_0(num_rows, num_cols);
+		ComplexMatrix empty_matrix_1(num_rows, num_cols);
+		empty_matrix_0.make_identity();
+		empty_matrix_1.make_identity();
+		ComplexMatrix* empty[2] = {&empty_matrix_0, &empty_matrix_1};
+				
+		ComplexMatrix& hamiltonian = *empty[0];
+		ComplexMatrix& h_squared = *empty[1];
+		
+		identity.mul_hermitian(*this, hamiltonian);
+		hamiltonian.mul_hermitian(*this, h_squared);
+		/*
+		printf("Hamiltonian: \n");
+		this-> debug_print();
+		printf("Halmiltonian Squared: \n");
+		h_squared.debug_print();
+		//*/
+    dst.make_zero();
+		sin.make_zero();
+		cos.make_identity();
+		
+    double one_over_k_factorial = 1.0;
+    bool done = false;
+    
+    // work out cos(H)
+			
+		double plus_or_minus = 1.0;
+    for (uint32_t k = 0; !done; k+=2)
+    {
+        if (k > 1)
+        {
+          one_over_k_factorial /= (k*(k-1)); // need to account for skipped k 
+					if(k%4 != 0)
+					{
+						plus_or_minus = -1.0;
+					}
+					else
+					{
+						plus_or_minus = 1.0;
+					}	
+					// TODO: figure out when powers of k should be negative. Note cos goes like H^2k and (-1)^k
+
+		      if (one_over_k_factorial >= precision)
+		      {
+	          uint32_t alternate = k & 1;
+	          ComplexMatrix& new_pa = *pa[alternate];
+	          ComplexMatrix& old_pa = *pa[1 - alternate];
+
+            old_pa.compress_matrix_storage();
+            old_pa.mul_hermitian(h_squared, new_pa);
+						
+						
+						// TODO: Make add_scalar function where scalar can be negative......???
+	          scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial*plus_or_minus);
+	          cos.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+
+		      }
+		      else
+		      {
+		          done = true;
+		      }
+				}
+    }
+    
+
+		// Work out sin(H)
+		pa[0] = &hamiltonian;
+		pa[1] = &hamiltonian;
+ 
+		done = false;
+    one_over_k_factorial = 1.0;
+		plus_or_minus = 1.0;
+
+    for (uint32_t k = 1; !done; k+=2)
+    {
+        if (k >= 1)
+        {
+					if((k+1)%4 == 0)
+					{
+						plus_or_minus = -1.0;
+					}
+					else
+					{
+						plus_or_minus = 1.0;
+					}	
+
+          if(k>1) one_over_k_factorial /= (k*(k-1)); // need to account for skipped k 
+		      if (one_over_k_factorial >= precision)
+		      {
+		          uint32_t alternate = k & 1;
+		          ComplexMatrix& new_pa = *pa[alternate];
+		          ComplexMatrix& old_pa = *pa[1 - alternate];
+
+              old_pa.compress_matrix_storage();
+              old_pa.mul_hermitian(h_squared, new_pa);
+
+		          scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial*plus_or_minus);
+		          sin.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+		          
+		      }
+		      else
+		      {
+		          done = true;
+		      }
+				}
+    }
+
+//*
+		// TODO: fnc to swap elements, i..e multiply by i
+		for(uint32_t r =0; r<num_rows; r++)
+		{
+			for(uint32_t c = 0; c<num_cols; c++)
+			{
+				sin[r][c] = to_complex(-1.0*get_imag(sin[r][c]), get_real(sin[r][c]));
+			}
+		}
+
+		dst.add_hermitian(cos);
+		dst.add_hermitian(sin);
+
+		printf("---- Exponentiated ---- \n");
+		dst.debug_print();
+
+//*/
+		
+}
 
 
 
