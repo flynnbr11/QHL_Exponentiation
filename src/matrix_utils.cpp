@@ -92,8 +92,8 @@ void ComplexMatrix::print_compressed_storage() const
 
 }
 
-#define OPT_3 1 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
-#define OPT_4 0 // opt 4 used for development of sparsity utility
+#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 1 // opt 4 used for development of sparsity utility
 #define mul_full 0
 
 #define testing_class 0
@@ -233,7 +233,7 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
             ComplexMatrix& old_pa = *pa[1 - alternate];
             if (k > 0)
             {
-                //new_pa.compress_matrix_storage();
+                new_pa.compress_matrix_storage();
                 old_pa.compress_matrix_storage();
 
                 old_pa.mul_hermitian(*this, new_pa);
@@ -259,11 +259,7 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
     ComplexMatrix cos(num_rows, num_cols);
     power_accumulator0.make_identity();
     power_accumulator1.make_identity();
- 
-    ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
-
-		ComplexMatrix identity(num_rows, num_cols);
-		identity.make_identity();
+		ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
 
 		ComplexMatrix empty_matrix_0(num_rows, num_cols);
 		ComplexMatrix empty_matrix_1(num_rows, num_cols);
@@ -271,24 +267,25 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 		empty_matrix_1.make_identity();
 		ComplexMatrix* empty[2] = {&empty_matrix_0, &empty_matrix_1};
 				
+		ComplexMatrix identity(num_rows, num_cols);
+		identity.make_identity();
+
 		ComplexMatrix& hamiltonian = *empty[0];
 		ComplexMatrix& h_squared = *empty[1];
 		
+		identity.compress_matrix_storage();
 		identity.mul_hermitian(*this, hamiltonian);
+		hamiltonian.compress_matrix_storage();
 		hamiltonian.mul_hermitian(*this, h_squared);
-		/*
-		printf("Hamiltonian: \n");
-		this-> debug_print();
-		printf("Halmiltonian Squared: \n");
-		h_squared.debug_print();
-		//*/
+
+		h_squared.compress_matrix_storage();
+
     dst.make_zero();
 		sin.make_zero();
 		cos.make_identity();
 		
     double one_over_k_factorial = 1.0;
     bool done = false;
-    
     // work out cos(H)
 			
 		double plus_or_minus = 1.0;
@@ -313,11 +310,10 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 	          ComplexMatrix& new_pa = *pa[alternate];
 	          ComplexMatrix& old_pa = *pa[1 - alternate];
 
+						//new_pa.compress_matrix_storage();
             old_pa.compress_matrix_storage();
             old_pa.mul_hermitian(h_squared, new_pa);
-						
-						
-						// TODO: Make add_scalar function where scalar can be negative......???
+
 	          scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial*plus_or_minus);
 	          cos.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
 
@@ -326,9 +322,9 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 		      {
 		          done = true;
 		      }
+		      
 				}
     }
-    
 
 		// Work out sin(H)
 		pa[0] = &hamiltonian;
@@ -357,7 +353,8 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 		          uint32_t alternate = k & 1;
 		          ComplexMatrix& new_pa = *pa[alternate];
 		          ComplexMatrix& old_pa = *pa[1 - alternate];
-
+	
+							new_pa.compress_matrix_storage();
               old_pa.compress_matrix_storage();
               old_pa.mul_hermitian(h_squared, new_pa);
 

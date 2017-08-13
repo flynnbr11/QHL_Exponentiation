@@ -19,11 +19,16 @@ int main() {
 			mtx_data[i*size + j] = complex_zero;		
 		}
 	}
-	mtx_data[1] = complex_minus_i;
-	mtx_data[4] = complex_i;
-	mtx_data[11] = complex_i;
-	mtx_data[14] = complex_minus_i;
-	
+	if(size==4){
+		mtx_data[1] = complex_minus_i;
+		mtx_data[4] = complex_i;
+		mtx_data[11] = complex_i;
+		mtx_data[14] = complex_minus_i;
+	}
+	else if (size==2){
+		mtx_data[1] = complex_one;
+		mtx_data[2] = complex_one;
+	}
 	
 	
 	ComplexMatrix ham(size, size, mtx_data);
@@ -32,6 +37,7 @@ int main() {
 	ComplexMatrix dest(size, size);
 	double precision = 1e-12;
 	ham.cos_plus_i_sin(dest, precision);
+//	ham.expm_special(dest, precision);
 
 	/*
 	ComplexMatrix destination_expm_special(size, size);
