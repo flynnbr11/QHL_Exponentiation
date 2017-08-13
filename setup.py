@@ -41,13 +41,14 @@ if python_version == 2:
 		             "./src/matrix_utils.cpp", 
 		             "./src/python_interface.cpp", 
 		            ], 
-		            extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11"],
-		            extra_link_args=["-lm", "-lstdc++"],
+		            extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11", "-I/usr/include/python3.5"],
+		            extra_link_args=["-lm", "-lstdc++", "-lpython2.7"],
 		            include_dirs=["src/", "/usr/include/python2.7", numpy.get_include()]
 		            )
 
 	setup(name="hamiltonian_exponentiation",
 		  version=time.strftime('%Y.%m.%d.%H.%M'),
+#		  install_requires=['numpy', 'time', 'sys' ],
 		  packages = ["hamiltonian_exponentiation"],
 		  ext_modules=[libmatrix_utils],
 		  author="University of Bristol",
@@ -59,7 +60,8 @@ if python_version == 2:
 		  
 		  
 elif python_version == 3: 
-	from distutils.core import setup, Extension
+#	from distutils.core import setup, Extension
+	from setuptools import setup, Extension
 
 	print("Python version ", sys.version)
 	libmatrix_utils = Extension("libmatrix_utils",
@@ -67,22 +69,24 @@ elif python_version == 3:
                  "./src/matrix_utils.cpp", 
                  "./src/python_interface.cpp", 
                 ], 
-                extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11"],
-                extra_link_args=["-lm", "-lstdc++"],
+                extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11", "-I/usr/include/python3.5"],
+                extra_link_args=["-lm", "-lstdc++", "-lpython3.5m"],
                 include_dirs=["src/", "/usr/include/python3.5", numpy.get_include()]
+#                include_dirs=["src/", "/home/brian/miniconda3/bin/python3", numpy.get_include()]
                 )
 
 
 	setup(name='hamiltonian_exponentiation',
 		  packages=['hamiltonian_exponentiation'],
+#		  install_requires=['numpy', 'time', 'sys'],
 		  version='1.0',
-		  description='Hamiltonian Exponentiation',
 		  author='Brian Flynn',
 		  ext_modules=[libmatrix_utils],
 		  author_email='brian.flynn@bristol.ac.uk',
-		  url='No url'
+		  url='https://github.com/flynnbr11/QHL_Exponentiation',
+		  description="Module for exponentiating Hamiltonian matrices, which must be Hermitian.",
 		 )
 		 
 else: 
-	print("Invalid Python version", sys.version)
+	print("Invalid Python version:", sys.version)
 	

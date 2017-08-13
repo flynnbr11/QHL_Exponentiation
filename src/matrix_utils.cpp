@@ -194,6 +194,7 @@ void ComplexMatrix::mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst) 
 
 
 
+// TODO: Add add_complex_scaled_hermition fnc.... for Cos + i Sin step
 // this += rhs * scale
 void ComplexMatrix::add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale)
 {
@@ -287,9 +288,17 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
     double one_over_k_factorial = 1.0;
     bool done = false;
     // work out cos(H)
+		printf("Hamiltonian: \n");
+		hamiltonian.debug_print();
+		printf("Hamiltonian Squared: \n");
+		h_squared.debug_print();
 			
+		printf("Then, Cos = \n");
+		cos.debug_print();
+
+		uint32_t alternate;	
 		double plus_or_minus = 1.0;
-    for (uint32_t k = 0; !done; k+=2)
+    for (uint32_t k = 2; !done; k+=2)
     {
         if (k > 1)
         {
@@ -297,25 +306,41 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 					if(k%4 != 0)
 					{
 						plus_or_minus = -1.0;
+						alternate = 0;
 					}
 					else
 					{
 						plus_or_minus = 1.0;
+						alternate = 1;
 					}	
 					// TODO: figure out when powers of k should be negative. Note cos goes like H^2k and (-1)^k
 
 		      if (one_over_k_factorial >= precision)
 		      {
-	          uint32_t alternate = k & 1;
+//	          uint32_t alternate = k & 1;
 	          ComplexMatrix& new_pa = *pa[alternate];
 	          ComplexMatrix& old_pa = *pa[1 - alternate];
 
+						printf("[cos] (old_pa) : \n");
+						old_pa.debug_print();
+						printf("[cos] (new_pa) : \n");
+						new_pa.debug_print();
+
 						//new_pa.compress_matrix_storage();
+
             old_pa.compress_matrix_storage();
             old_pa.mul_hermitian(h_squared, new_pa);
+						
 
 	          scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial*plus_or_minus);
 	          cos.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+
+	         	printf("[Cos] k=%u \t +/- = %f \t 1/k! = %.22f \n", k, plus_or_minus, one_over_k_factorial);
+	         	printf("Adding: \n");
+	         	new_pa.debug_print(); 
+	         	printf("Then, Cos = \n");
+	          cos.debug_print();
+
 
 		      }
 		      else
@@ -329,12 +354,14 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 		// Work out sin(H)
 		pa[0] = &hamiltonian;
 		pa[1] = &hamiltonian;
- 
+ 		hamiltonian.compress_matrix_storage();
 		done = false;
     one_over_k_factorial = 1.0;
 		plus_or_minus = 1.0;
 
-    for (uint32_t k = 1; !done; k+=2)
+		sin.add_hermitian(hamiltonian);
+
+    for (uint32_t k = 3; !done; k+=2)
     {
         if (k >= 1)
         {
@@ -353,21 +380,45 @@ void ComplexMatrix::cos_plus_i_sin(ComplexMatrix& dst, double precision) const
 		          uint32_t alternate = k & 1;
 		          ComplexMatrix& new_pa = *pa[alternate];
 		          ComplexMatrix& old_pa = *pa[1 - alternate];
+
+							printf("[sin] (old_pa) : \n");
+							old_pa.debug_print();
+							printf("[sin] (new_pa) : \n");
+							new_pa.debug_print();
 	
-							new_pa.compress_matrix_storage();
+							//new_pa.compress_matrix_storage();
               old_pa.compress_matrix_storage();
+              // printf("To be multiplied by h_squared : \n");
+              // old_pa.debug_print();
+              // printf("H squared: \n");
+              h_squared.debug_print();
               old_pa.mul_hermitian(h_squared, new_pa);
+
+
 
 		          scalar_t one_over_k_factorial_simd = to_scalar(one_over_k_factorial*plus_or_minus);
 		          sin.add_scaled_hermitian(new_pa, one_over_k_factorial_simd);
-		          
+		         	//*
+		         	printf("[Sin] k=%u \t +/- = %f \t 1/k! = %.22f \n", k, plus_or_minus, one_over_k_factorial);
+		         	printf("Adding: \n");
+		         	new_pa.debug_print(); 
+		         	printf("Then, Sin = \n");
+		         	sin.debug_print();
+		         	//*/
 		      }
+		      
+		      
 		      else
 		      {
 		          done = true;
 		      }
 				}
     }
+
+		printf("Cos =: \n");
+		cos.debug_print();
+		printf("Sin =: \n"); 
+		sin.debug_print();
 
 //*
 		// TODO: fnc to swap elements, i..e multiply by i
@@ -518,7 +569,7 @@ void ComplexMatrix::debug_print() const
             double re = get_real(val);
             double im = get_imag(val);
             if (re || im)
-                printf("%.2f+%.2fi ", get_real(val), get_imag(val));
+                printf("%.3f+%.3fi ", get_real(val), get_imag(val));
             else
                 printf("     0     ");
         }

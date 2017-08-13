@@ -156,10 +156,11 @@ static PyObject* ExpiHamiltonian(PyObject *self, PyObject *args)
 
 static PyMethodDef matrix_utils_methods[] = {
     {"simple_test",             SimpleTest,                 METH_VARARGS, "Just a test."},
-//    {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
+    {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
 //    {"exp_i_mtx",               ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
-			{"expm_special_cpp",               ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
-      {NULL, NULL, 0, NULL}        /* Sentinel */
+//		{"expm_special_cpp",               ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
+    {"exponentiate_i_hamiltonian", ExpiHamiltonian,            METH_VARARGS, "Exponentiate {iH} where H is input Hamiltonian."},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 static PyObject *theError;
