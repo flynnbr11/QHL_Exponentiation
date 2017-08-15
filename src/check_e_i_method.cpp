@@ -27,42 +27,18 @@ int main() {
 	}
 	else if (size==2){
 		
-		mtx_data[1] = to_complex(25.0, 0.0);
-		mtx_data[2] = to_complex(25.0, 0.0);
+		mtx_data[1] = to_complex(2.0, 0.0);
+		mtx_data[2] = to_complex(2.0, 0.0);
 	}
 	double precision = 1e-52;
-	
+	double time = 4.0;
 	
 	ComplexMatrix ham(size, size, mtx_data);
+	printf("Input Matrix: \n");
 	ham.debug_print();
-	
 	ComplexMatrix dest(size, size);
-	ham.cos_plus_i_sin(dest, precision);
-	printf("Exponentiated = \n");
+
+	ham.expm_minus_i_h_t(dest, precision, time);
+	printf("Output: \n");
 	dest.debug_print();
-//	ham.expm_special(dest, precision);
-	
-	/*
-	ComplexMatrix destination_expm_special(size, size);
-	ComplexMatrix destination_cos_sin(size, size);
-
-	ham.make_identity();
-	ham.expm_special(destination_expm_special, 1e-15);
-	ham.cos_plus_i_sin(destination_cos_sin, 1e-15);
-	*/
-	
-	
-	/*
-	
-
-	printf("Before Cos + i Sin:\n");
-	ham.debug_print();
-	printf("---- ----");
-	printf("After Cos + i Sin:\n");
-	destination_cos_sin.debug_print();
-	printf("---- ----");
-	printf("After expm special: \n");
-	destination_expm_special.debug_print();
-	*/
-
 }

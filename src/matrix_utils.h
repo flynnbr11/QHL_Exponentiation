@@ -14,7 +14,7 @@
 #include <vector>
 typedef __m128d scalar_t;
 typedef __m128d complex_t;
-#define TOLERANCE 1e-20
+#define TOLERANCE 1e-52
 
 #define VERBOSE_H 0
 #define COMPRESS 1
@@ -29,10 +29,14 @@ inline double get_imag(const complex_t c) { return ((double*)&c)[1]; }
 inline double get_scalar_val_0(const scalar_t c) {return ((double*)&c)[0];}
 inline double get_scalar_val_1(const scalar_t c) {return ((double*)&c)[1];}
 
+
+//inline mul_by_i(const complex_t input){return to_complex( -1.0*(get_imag(input), get_real(input));}
+
 inline complex_t complex_conjugate(const complex_t& c) { return to_complex(get_real(c), -get_imag(c)); }
 inline const complex_t add(const complex_t lhs, const complex_t rhs) { return _mm_add_pd(lhs, rhs); }
 inline const complex_t sub(const complex_t lhs, const complex_t rhs) { return _mm_sub_pd(lhs, rhs); }
 inline const complex_t mul_scalar(const complex_t lhs, const scalar_t rhs) { return _mm_mul_pd(lhs, rhs); }
+
 inline double mag_sqr(const complex_t lhs) { complex_t c = _mm_mul_pd(lhs, lhs); return get_real(c) + get_imag(c); }
 inline void addeq(complex_t* lhs, const complex_t rhs) { *lhs = _mm_add_pd(*lhs, rhs); }
 inline void subeq(complex_t* lhs, const complex_t rhs) { *lhs = _mm_sub_pd(*lhs, rhs); }
@@ -221,9 +225,12 @@ public:
     void make_identity();
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
+		void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
     void expm_special(ComplexMatrix& dst, double precision) const;
+		void expm_minus_i_h_t(ComplexMatrix& dst, double precision, double time) const;    
     void cos_plus_i_sin(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
     void print_compressed_storage() const;
