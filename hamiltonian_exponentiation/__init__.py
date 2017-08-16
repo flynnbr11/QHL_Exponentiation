@@ -1,7 +1,16 @@
 # import numpy as np
 # import libmatrix_utils as libmu 
 
-def expn_hamilt(src, precision=1e-25):
+def exp_minus_i_h_t(src, time, precision=1e-16):
+    import libmatrix_utils as libmu
+    import numpy as np
+    dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+    result = libmu.e_minus_i_h_t(src, dst, time, precision)
+    print(result)
+    return dst
+
+
+def expn_hamilt(src, precision=1e-52):
     import libmatrix_utils as libmu
     import numpy as np
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
@@ -9,7 +18,7 @@ def expn_hamilt(src, precision=1e-25):
     print(result)
     return dst
 
-def e_i_hamilt(src, precision=1e-25):
+def e_i_hamilt(src, precision=1e-52):
     import libmatrix_utils as libmu
     import numpy as np
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)

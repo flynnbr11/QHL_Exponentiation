@@ -364,7 +364,7 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 		ComplexMatrix rescaled_mtx(num_rows, num_cols);
     if(rescale_method)
     {
-		  norm_scalar = this -> normalise_matrix_by_magnitude();
+		  norm_scalar = this -> get_max_element_magnitude();
 		  scalar_t scale = to_scalar(1.0/norm_scalar);
 			rescaled_mtx.make_zero();
 			rescaled_mtx.add_scaled_hermitian(*this, scale);
@@ -389,9 +389,8 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
     double time_tracker = 1.0;
     double k_fact = 1.0;
     double scale_tracker = 1.0;
-		complex_t current_max_element = this -> get_max_mtx_element();
+		double current_max_element = this -> get_max_element_magnitude();
     
-//		one_over_k_factorial *= time;
     bool done = false;
     for (uint32_t k = 0; !done; ++k)
 //    for (uint32_t k = 0; k<5; ++k)
@@ -411,7 +410,7 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 				}
 				
 
-        if (one_over_k_factorial * ::mag_sqr(current_max_element) >= precision)
+        if (one_over_k_factorial * current_max_element >= precision)
 //        if (one_over_k_factorial >= precision)
         {
             uint32_t alternate = k & 1;
@@ -432,11 +431,10 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 									this -> debug_print();
 								}
 									
-//                old_pa.mul_herm_for_e_minus_i(*this, new_pa);
                 old_pa.mul_herm_for_e_minus_i(rescaled_mtx, new_pa);                
                 
                 //new_pa.debug_print();
-                current_max_element = new_pa.get_max_mtx_element();
+                current_max_element = new_pa.get_max_element_magnitude();
 								//printf("k=%u. Max_el * scale = %.5e \n",k, ::mag_sqr(current_max_element) * one_over_k_factorial);
 								//printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));
 						}	
@@ -505,10 +503,13 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
             done = true;
 						printf("Exponentiation expansion truncated at k=%u \n", k);
 						printf("Here (s.t)^k/k! = %.5e \n", one_over_k_factorial);
-						printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));						
+//						printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));						
         }
     }
-
+    
+    printf("After: max_val * (s.t)^k / k! = %.5e \n precision = %.2e \n", one_over_k_factorial * current_max_element, precision);
+    
+    
     /*
     if (rescale_method) 
     {

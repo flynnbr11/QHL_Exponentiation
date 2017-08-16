@@ -185,7 +185,7 @@ public:
 			return mtx_max;
 		}
 		
-		double normalise_matrix_by_magnitude() const
+		double get_max_element_magnitude() const
 		{
 
 			complex_t matrix_max_val = to_complex(0.0, 0.0);
@@ -198,29 +198,14 @@ public:
 			{
 				if(::mag_sqr(values[i]) > abs_matrix_max_val)
 				{
-//					matrix_max_val = values[i];
 					abs_matrix_max_val = ::mag_sqr(values[i]);
 				}
 			}
 			
 			double sqrt_max = sqrt(abs_matrix_max_val);
-			scalar_t one_over_max = to_scalar(1/(sqrt_max));
-			/*
-			for(uint32_t i=0; i<num_rows*num_cols; ++i)
-			{
-//				dst.values[i] = mul_scalar(values[i], one_over_max);
-					dst.set_value(i, mul_scalar(values[i], one_over_max));
-			}		
-			dst.compress_matrix_storage();
-			*/
 			return sqrt_max;
 		}
-/*
-		void set_value(uint32_t i, complex_t val)
-		{
-			values[i] = val;
-		}
-*/		
+
 		complex_t get_max_mtx_element() const
 		{
 

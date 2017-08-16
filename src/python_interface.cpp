@@ -162,9 +162,9 @@ static PyObject* Exp_minus_iHt(PyObject *self, PyObject *args)
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
-    if (!PyArg_ParseTuple(args, "O!O!d", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &time, &precision))
+    if (!PyArg_ParseTuple(args, "O!O!dd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &time, &precision))
     {
-        fprintf(stderr, "Error: expm_special() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
+        fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
 
