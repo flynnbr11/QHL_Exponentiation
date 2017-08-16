@@ -146,6 +146,119 @@ public:
 		//*/
 
 
+		double normalise_matrix_by_real_or_imag()
+		{
+
+			complex_t matrix_max_val = to_complex(0.0, 0.0);
+			double abs_matrix_max_val = ::mag_sqr(matrix_max_val);
+			double mtx_max=0.0;
+			double real;
+			double imag;
+			complex_t val;
+			for(uint32_t i = 0; i < num_rows * num_cols; ++i)
+			{
+					val = values[i];
+					real = get_real(val);
+					imag = get_imag(val);
+					if(real<0.0) real = -1.0 * real;
+					if(imag<0.0) imag = -1.0 * imag;
+					
+					if(real > mtx_max)
+					{
+						mtx_max = get_real(val);
+					}
+					if(imag > mtx_max)
+					{
+						mtx_max = get_imag(val);
+					}
+
+			}
+			
+			mtx_max += 0.0001*mtx_max;
+			scalar_t one_over_max = to_scalar(1.0/(mtx_max));
+			
+			for(uint32_t i=0; i<num_rows*num_cols; ++i)
+			{
+				values[i] = mul_scalar(values[i], one_over_max);
+			}		
+
+			return mtx_max;
+		}
+		
+		double normalise_matrix_by_magnitude() const
+		{
+
+			complex_t matrix_max_val = to_complex(0.0, 0.0);
+			double abs_matrix_max_val = ::mag_sqr(matrix_max_val);
+			double mtx_max=0.0;
+			double real;
+			double imag;
+			complex_t val;
+			for(uint32_t i = 0; i < num_rows * num_cols; ++i)
+			{
+				if(::mag_sqr(values[i]) > abs_matrix_max_val)
+				{
+//					matrix_max_val = values[i];
+					abs_matrix_max_val = ::mag_sqr(values[i]);
+				}
+			}
+			
+			double sqrt_max = sqrt(abs_matrix_max_val);
+			scalar_t one_over_max = to_scalar(1/(sqrt_max));
+			/*
+			for(uint32_t i=0; i<num_rows*num_cols; ++i)
+			{
+//				dst.values[i] = mul_scalar(values[i], one_over_max);
+					dst.set_value(i, mul_scalar(values[i], one_over_max));
+			}		
+			dst.compress_matrix_storage();
+			*/
+			return sqrt_max;
+		}
+/*
+		void set_value(uint32_t i, complex_t val)
+		{
+			values[i] = val;
+		}
+*/		
+		complex_t get_max_mtx_element() const
+		{
+
+			complex_t matrix_max_val = to_complex(0.0, 0.0);
+			double abs_matrix_max_val = ::mag_sqr(matrix_max_val);
+			double mtx_max=0.0;
+			double real;
+			double imag;
+			complex_t val;
+			for(uint32_t i = 0; i < num_rows * num_cols; ++i)
+			{
+				if(::mag_sqr(values[i]) > abs_matrix_max_val)
+				{
+					matrix_max_val = values[i];
+					abs_matrix_max_val = ::mag_sqr(values[i]);
+				}
+			}
+			
+//			double sqrt_max = sqrt(abs_matrix_max_val);
+//			scalar_t one_over_max = to_scalar(1/(sqrt_max));
+		
+			return matrix_max_val;
+		}
+
+
+
+
+		void restore_norm(double norm_scalar)
+		{
+			scalar_t rescale = to_scalar(norm_scalar);
+			for(uint32_t i=0; i<num_rows*num_cols; ++i)
+			{
+				values[i] = mul_scalar(values[i], rescale);
+			}	
+			
+		}
+
+
 		void compress_matrix_storage() 
 		{
         complex_t complex_zero = to_complex(0.0, 0.0);
@@ -226,11 +339,12 @@ public:
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
 		void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
-    void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+//    void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+    void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
 		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
     void expm_special(ComplexMatrix& dst, double precision) const;
-		void expm_minus_i_h_t(ComplexMatrix& dst, double precision, double time) const;    
+		void expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision) const;    
     void cos_plus_i_sin(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
     void print_compressed_storage() const;
@@ -239,7 +353,8 @@ public:
 		uint32_t *num_nonzeros_by_row;
 		uint32_t **nonzero_col_locations;
 		complex_t **nonzero_values;
-
+//		complex_t matrix_max_val;
+//		complex_t abs_matrix_max_val;
 
 private:
     void destroy()

@@ -93,8 +93,8 @@ void ComplexMatrix::print_compressed_storage() const
 
 }
 
-#define OPT_3 1 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
-#define OPT_4 0 // opt 4 used for development of sparsity utility
+#define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
+#define OPT_4 1 // opt 4 used for development of sparsity utility
 #define mul_full 0
 
 #define testing_class 0
@@ -353,10 +353,30 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
     }
 }
 
-void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double precision, double time) const
+void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision) const
 {
+		printf("Time = %lf \n", time); 
 		// TODO: add double t argument to this function; make t^k / k!
     // To avoid extra copying, we alternate power accumulation matrices
+    bool rescale_method = true;
+    double norm_scalar;
+    bool do_print = false;
+		ComplexMatrix rescaled_mtx(num_rows, num_cols);
+    if(rescale_method)
+    {
+		  norm_scalar = this -> normalise_matrix_by_magnitude();
+		  scalar_t scale = to_scalar(1.0/norm_scalar);
+			rescaled_mtx.make_zero();
+			rescaled_mtx.add_scaled_hermitian(*this, scale);
+
+		  printf("After rescaling by factor %lf: \n", norm_scalar);
+			printf("Ratio of time to rescale factor = %15f \n", time/norm_scalar);
+			printf("Product of time to rescale factor = %15f \n", time*norm_scalar);
+			rescaled_mtx.debug_print();
+			rescaled_mtx.compress_matrix_storage();
+		  //this -> debug_print();
+		  //this -> compress_matrix_storage();
+		}
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
@@ -366,6 +386,11 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double precision, doubl
     dst.make_zero();
 
     double one_over_k_factorial = 1.0;
+    double time_tracker = 1.0;
+    double k_fact = 1.0;
+    double scale_tracker = 1.0;
+		complex_t current_max_element = this -> get_max_mtx_element();
+    
 //		one_over_k_factorial *= time;
     bool done = false;
     for (uint32_t k = 0; !done; ++k)
@@ -374,9 +399,20 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double precision, doubl
         if (k > 0)
       	{
 						one_over_k_factorial *= time;
-            one_over_k_factorial /= k;
+        		one_over_k_factorial /= k;
+						time_tracker *= time;
+						k_fact /= k;
+						//printf(" k=%u. \t 1/k! = %.3e \n", k, k_fact);
+						if (rescale_method) 
+						{
+							one_over_k_factorial *= norm_scalar;
+							scale_tracker *= norm_scalar;
+        		}
 				}
-        if (one_over_k_factorial >= precision)
+				
+
+        if (one_over_k_factorial * ::mag_sqr(current_max_element) >= precision)
+//        if (one_over_k_factorial >= precision)
         {
             uint32_t alternate = k & 1;
             ComplexMatrix& new_pa = *pa[alternate];
@@ -386,7 +422,23 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double precision, doubl
                 new_pa.compress_matrix_storage();
                 old_pa.compress_matrix_storage();
 
-                old_pa.mul_herm_for_e_minus_i(*this, new_pa);
+								if(do_print)
+								{
+									printf("Old_pa: \n");
+									old_pa.debug_print();
+									printf("New pa: \n");
+									new_pa.debug_print();
+									printf("this: \n");
+									this -> debug_print();
+								}
+									
+//                old_pa.mul_herm_for_e_minus_i(*this, new_pa);
+                old_pa.mul_herm_for_e_minus_i(rescaled_mtx, new_pa);                
+                
+                //new_pa.debug_print();
+                current_max_element = new_pa.get_max_mtx_element();
+								//printf("k=%u. Max_el * scale = %.5e \n",k, ::mag_sqr(current_max_element) * one_over_k_factorial);
+								//printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));
 						}	
 						
             complex_t one_over_k_factorial_simd;
@@ -413,20 +465,56 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double precision, doubl
 							printf("k = %u doesn't meet criteria.\n", k);
 						}
 
-            dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+						
+//            if(!std::isfinite(scale_tracker*time_tracker*k_fact) || (k_fact < precision))
+            if(!std::isfinite(scale_tracker*time_tracker*k_fact) || (scale_tracker*time_tracker*k_fact < precision) || k_fact < 1e-300)
+            {
+            	if(!std::isfinite(scale_tracker*time_tracker*k_fact)) 
+            	{
+            		printf("Value is not finite at k=%u. \n", k);
+            	}
+            	printf("Time^k = %.3e \n", time_tracker);
+            	printf("Scale^k = %.3e \n", scale_tracker);
+            	printf("(Time * Scale)^k = %.3e \n", time_tracker * scale_tracker);
+            	printf("1/k! = %.3e \n", k_fact); 
+							printf("Value = %.3e \n", scale_tracker*time_tracker*k_fact);
+            	
+							printf("Exponentiation expansion truncated at k=%u \n", k);
+            	done = true;
+            }
+            else
+            { //only add to destination matrix if not yet at inf
+		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
 
-						/* Print this loop */
-						printf("k=%u. Scaling factor: %10f + %10f i \n", k, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
-						printf("Adding : \n");
-						new_pa.debug_print();
-            printf("Then dest: \n");
-            dst.debug_print();
+							/* Print this loop */
+							if(do_print)
+							{
+								printf("k=%u \n \t t^k = %.5e \n \t norm^k = %.5e \n \t 1/k! = %.5e \n", k, time_tracker, scale_tracker, k_fact ); 
+								printf("Scaling factor: %.5e + %.5e i \n", get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+								printf("Adding : \n");
+								new_pa.debug_print();
+				        printf("Then dest: \n");
+				        dst.debug_print();
+							}
+            
+            }
+            
         }
         else
         {
             done = true;
+						printf("Exponentiation expansion truncated at k=%u \n", k);
+						printf("Here (s.t)^k/k! = %.5e \n", one_over_k_factorial);
+						printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));						
         }
     }
+
+    /*
+    if (rescale_method) 
+    {
+    	this -> restore_norm(norm_scalar);
+			this -> compress_matrix_storage();
+		}*/
 }
 
 
@@ -743,7 +831,7 @@ double do_permanent(const double* mtx_data, uint32_t size)
 
 void ComplexMatrix::debug_print() const
 {
-		printf("---- -- Debug Print-- ----\n");
+//		printf("---- -- Debug Print -- ----\n");
 
     for (uint32_t row = 0; row < num_rows; ++row)
     {
@@ -755,7 +843,7 @@ void ComplexMatrix::debug_print() const
             double re = get_real(val);
             double im = get_imag(val);
             if (re || im)
-                printf("%.13f+%.13fi ", get_real(val), get_imag(val));
+                printf("%.7e+%.7ei ", get_real(val), get_imag(val));
             else
                 printf("     0     ");
         }
