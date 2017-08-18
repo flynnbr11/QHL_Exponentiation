@@ -1,0 +1,60 @@
+ok: e^{-iHt}
+Times: 	 Exp:  0.0013926029205322266 ; 	 linalg:  0.04398536682128906
+ok: e^{-iHt}
+Input:
+[[ 0.+0.j          0.+0.j          0.+0.j          0.-8.40121887j]
+ [ 0.+0.j          0.+0.j          0.+8.40121887j  0.+0.j        ]
+ [ 0.+0.j          0.-8.40121887j  0.+0.j          0.+0.j        ]
+ [ 0.+8.40121887j  0.+0.j          0.+0.j          0.+0.j        ]]
+lin:
+[[-0.05080773+0.j  0.00000000+0.j  0.00000000+0.j  0.99870845+0.j]
+ [ 0.00000000+0.j -0.05080773+0.j -0.99870845+0.j  0.00000000+0.j]
+ [ 0.00000000+0.j  0.99870845+0.j -0.05080773+0.j  0.00000000+0.j]
+ [-0.99870845+0.j  0.00000000+0.j  0.00000000+0.j -0.05080773+0.j]]
+exp:
+[[ -1.08824788e+70+0.j   0.00000000e+00+0.j   0.00000000e+00+0.j
+   -8.99057108e+69+0.j]
+ [  0.00000000e+00+0.j  -1.08824788e+70+0.j   8.99057108e+69+0.j
+    0.00000000e+00+0.j]
+ [  0.00000000e+00+0.j  -8.99057108e+69+0.j  -1.08824788e+70+0.j
+    0.00000000e+00+0.j]
+ [  8.99057108e+69+0.j   0.00000000e+00+0.j   0.00000000e+00+0.j
+   -1.08824788e+70+0.j]]
+Max value in hamiltonian =  8.4012188675j
+Max difference =  (8.99057107511e+69+0j)
+Time = 20.000000 
+After rescaling by factor 8.401219: 
+Ratio of time to rescale factor =        2.380607 
+Product of time to rescale factor =      168.024377 
+  |      0          0          0     0.0000000e+00+-1.0000000e+00i  |
+  |      0          0     0.0000000e+00+1.0000000e+00i      0      |
+  |      0     0.0000000e+00+-1.0000000e+00i      0          0      |
+  | 0.0000000e+00+1.0000000e+00i      0          0          0      |
+---- ---- ----
+Value is not finite at k=139. 
+Time^k = 6.969e+180 
+Scale^k = 3.045e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.040e-239 
+Value = inf 
+Exponentiation expansion truncated at k=139 
+After: max_val * (s.t)^k / k! = 2.20682e+70 
+ precision = 1.00e-14 
+Time = 20.000000 
+After rescaling by factor 8.401219: 
+Ratio of time to rescale factor =        2.380607 
+Product of time to rescale factor =      168.024377 
+  |      0          0          0     0.0000000e+00+-1.0000000e+00i  |
+  |      0          0     0.0000000e+00+1.0000000e+00i      0      |
+  |      0     0.0000000e+00+-1.0000000e+00i      0          0      |
+  | 0.0000000e+00+1.0000000e+00i      0          0          0      |
+---- ---- ----
+Value is not finite at k=139. 
+Time^k = 6.969e+180 
+Scale^k = 3.045e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.040e-239 
+Value = inf 
+Exponentiation expansion truncated at k=139 
+After: max_val * (s.t)^k / k! = 2.20682e+70 
+ precision = 1.00e-14 

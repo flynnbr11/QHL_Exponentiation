@@ -197,11 +197,24 @@ static PyObject* Exp_minus_iHt(PyObject *self, PyObject *args)
 
     const ComplexMatrix src(src_rows, src_cols, src_ptr);
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
-
-    src.expm_minus_i_h_t(dst, time, precision);
-
+		bool exp_reached_inf = false;
+		exp_reached_inf = src.expm_minus_i_h_t(dst, time, precision);
+		src.expm_minus_i_h_t(dst, time, precision);
+		//printf("reached inf : %d \n", exp_reached_inf);
+    
     result_str = "ok: e^{-iHt}";
-    return Py_BuildValue("s", result_str.c_str());
+    /*
+    if(exp_reached_inf)
+    {
+    	printf("Inf reached: incorrect calculation. \n");
+    }
+    else
+    {
+    	printf("Correct: Inf not reached. \n");
+    }
+    */
+//    return Py_BuildValue("s", result_str.c_str());
+    return Py_BuildValue("b", exp_reached_inf);
 }
 
 

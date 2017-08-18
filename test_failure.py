@@ -16,7 +16,7 @@ def diff_mtx(ham, t, prec):
 	
 	
 	print("Times: \t Exp: ", end_exp-begin_exp, "; \t linalg: ", end_lin-begin_lin)
-	return expd - lin
+	return (expd - lin)
 
 
 sigmax = np.array([[0+0j, 1+0j], [1+0j, 0+0j]])
@@ -25,10 +25,10 @@ sigmaz = np.array([[1+0j, 0+0j], [0+0j, -1+0j]])
 
 a = 110.9
 ham = a*sigmax
-size=2
+size=4
 ham = h.random_hamiltonian(size)
 ham = a * ham
-t = 200.0
+t = 90.0
 prec = 1e-14
 
 sig_x = diff_mtx(ham, t, prec)
@@ -37,22 +37,23 @@ sig_x = diff_mtx(ham, t, prec)
 #print(sig_x)
 
 
-lin = linalg.expm(-1.j*ham*t)
-ex = h.exp_minus_i_h_t(ham, t, prec)
-
+#lin = linalg.expm(-1.j*ham*t)
+#ex = h.exp_minus_i_h_t(ham, t, prec)
+"""
 print("Input:")
 print(ham)
 
 print("lin:")
-print lin
+print(lin)
 
 print("exp:")
-print ex
+print(ex)
 
 print("Max value in hamiltonian = ", np.max(ham))
-print("Max difference = ", np.max(sig_x))
-	
-	
+"""
 
+#print("Inf reached: ", inf_reached, " \t Max difference = ", np.max(sig_x))
+print("precision = ", prec)	
+print("Max difference = ", np.max(sig_x))
 	
 

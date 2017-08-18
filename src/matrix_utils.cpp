@@ -353,11 +353,12 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
     }
 }
 
-void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision) const
+bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision) const
 {
-		printf("Time = %lf \n", time); 
+		//printf("Time = %lf \n", time); 
 		// TODO: add double t argument to this function; make t^k / k!
     // To avoid extra copying, we alternate power accumulation matrices
+		bool infinite_val = false;
     bool rescale_method = true;
     double norm_scalar;
     bool do_print = false;
@@ -368,11 +369,12 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 		  scalar_t scale = to_scalar(1.0/norm_scalar);
 			rescaled_mtx.make_zero();
 			rescaled_mtx.add_scaled_hermitian(*this, scale);
-
+			/*
 		  printf("After rescaling by factor %lf: \n", norm_scalar);
 			printf("Ratio of time to rescale factor = %15f \n", time/norm_scalar);
 			printf("Product of time to rescale factor = %15f \n", time*norm_scalar);
-			rescaled_mtx.debug_print();
+			*/
+			//rescaled_mtx.debug_print();
 			rescaled_mtx.compress_matrix_storage();
 		  //this -> debug_print();
 		  //this -> compress_matrix_storage();
@@ -467,6 +469,7 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 //            if(!std::isfinite(scale_tracker*time_tracker*k_fact) || (k_fact < precision))
             if(!std::isfinite(scale_tracker*time_tracker*k_fact) || (scale_tracker*time_tracker*k_fact < precision) || k_fact < 1e-300)
             {
+            	/*
             	if(!std::isfinite(scale_tracker*time_tracker*k_fact)) 
             	{
             		printf("Value is not finite at k=%u. \n", k);
@@ -478,7 +481,9 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 							printf("Value = %.3e \n", scale_tracker*time_tracker*k_fact);
             	
 							printf("Exponentiation expansion truncated at k=%u \n", k);
+            	*/
             	done = true;
+            	infinite_val = true;
             }
             else
             { //only add to destination matrix if not yet at inf
@@ -501,13 +506,14 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
         else
         {
             done = true;
-						printf("Exponentiation expansion truncated at k=%u \n", k);
-						printf("Here (s.t)^k/k! = %.5e \n", one_over_k_factorial);
+						//printf("Exponentiation expansion truncated at k=%u \n", k);
+						//printf("Here (s.t)^k/k! = %.5e \n", one_over_k_factorial);
 //						printf("current max = %.5e + %.5e i \n", get_real(current_max_element), get_imag(current_max_element));						
         }
     }
     
-    printf("After: max_val * (s.t)^k / k! = %.5e \n precision = %.2e \n", one_over_k_factorial * current_max_element, precision);
+    
+    //printf("After: max_val * (s.t)^k / k! = %.5e \n precision = %.2e \n", one_over_k_factorial * current_max_element, precision);
     
     
     /*
@@ -516,6 +522,10 @@ void ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
     	this -> restore_norm(norm_scalar);
 			this -> compress_matrix_storage();
 		}*/
+
+    return infinite_val;
+
+
 }
 
 

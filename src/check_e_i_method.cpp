@@ -30,17 +30,21 @@ int main() {
 		mtx_data[2] = to_complex(pauli_x, pauli_y);
 	}
 	double precision = 1e-15;
-	double time = 1.0;
+	double time = 10.0;
 
 	ComplexMatrix ham(size, size, mtx_data);
-	printf("Input Matrix: \n");
-	ham.debug_print();
+	//printf("Input Matrix: \n");
+	//ham.debug_print();
 	ComplexMatrix dest(size, size);
 	
 	//*
-	ham.expm_minus_i_h_t(dest, time, precision);
-	printf("Output: \n");
+	bool output = false;
+	output = ham.expm_minus_i_h_t(dest, time, precision);
+	/*
+	printf("Output = %d \n", output);
+	printf("Exponentiated mtx: \n");
 	dest.debug_print();
+	*/
 	//*/
 	/*	
 	double normalisation_scalar = ham.normalise_matrix();

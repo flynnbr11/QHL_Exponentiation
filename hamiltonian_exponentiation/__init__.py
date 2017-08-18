@@ -1,13 +1,24 @@
 # import numpy as np
 # import libmatrix_utils as libmu 
 
-def exp_minus_i_h_t(src, time, precision=1e-16):
+def exp_minus_i_h_t(src, t, precision=1e-16):
     import libmatrix_utils as libmu
     import numpy as np
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
-    result = libmu.e_minus_i_h_t(src, dst, time, precision)
-    print(result)
-    return dst
+    inf_reached = libmu.e_minus_i_h_t(src, dst, t, precision)
+    print(inf_reached)
+    if(inf_reached):
+      print("Incorrect - reverting to linalg sparse function.")
+      import scipy
+      from scipy import sparse
+      from scipy import linalg
+      from scipy.sparse.linalg import LinearOperator
+      from scipy.sparse import csr_matrix
+      expd_mtx = sparse.linalg.expm(-1.j*src*t)			
+      return expd_mtx
+    else:
+      print("Correct:")
+      return dst
 
 
 def expn_hamilt(src, precision=1e-52):

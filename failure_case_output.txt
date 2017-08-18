@@ -1,0 +1,72 @@
+ok: e^{-iHt}
+Times: 	 Exp:  0.0013442039489746094 ; 	 linalg:  0.043865203857421875
+ok: e^{-iHt}
+Max difference =  (1.19786276896e+189+0j)
+Time = 200.000000 
+After rescaling by factor 42.089084: 
+Ratio of time to rescale factor =        4.751826 
+Product of time to rescale factor =     8417.816749 
+  |      0     0.0000000e+00+-1.0000000e+00i  |
+  | 0.0000000e+00+1.0000000e+00i      0      |
+---- ---- ----
+Value is not finite at k=79. 
+Time^k = 6.045e+181 
+Scale^k = 2.039e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.118e-117 
+Value = inf 
+Exponentiation expansion truncated at k=79 
+After: max_val * (s.t)^k / k! = 1.37759e+193 
+ precision = 1.00e-14 
+Time = 200.000000 
+After rescaling by factor 42.089084: 
+Ratio of time to rescale factor =        4.751826 
+Product of time to rescale factor =     8417.816749 
+  |      0     0.0000000e+00+-1.0000000e+00i  |
+  | 0.0000000e+00+1.0000000e+00i      0      |
+---- ---- ----
+Value is not finite at k=79. 
+Time^k = 6.045e+181 
+Scale^k = 2.039e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.118e-117 
+Value = inf 
+Exponentiation expansion truncated at k=79 
+After: max_val * (s.t)^k / k! = 1.37759e+193 
+ precision = 1.00e-14 
+reached inf : 1 
+Inf reached: incorrect calculation. 
+Time = 200.000000 
+After rescaling by factor 42.089084: 
+Ratio of time to rescale factor =        4.751826 
+Product of time to rescale factor =     8417.816749 
+  |      0     0.0000000e+00+-1.0000000e+00i  |
+  | 0.0000000e+00+1.0000000e+00i      0      |
+---- ---- ----
+Value is not finite at k=79. 
+Time^k = 6.045e+181 
+Scale^k = 2.039e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.118e-117 
+Value = inf 
+Exponentiation expansion truncated at k=79 
+After: max_val * (s.t)^k / k! = 1.37759e+193 
+ precision = 1.00e-14 
+Time = 200.000000 
+After rescaling by factor 42.089084: 
+Ratio of time to rescale factor =        4.751826 
+Product of time to rescale factor =     8417.816749 
+  |      0     0.0000000e+00+-1.0000000e+00i  |
+  | 0.0000000e+00+1.0000000e+00i      0      |
+---- ---- ----
+Value is not finite at k=79. 
+Time^k = 6.045e+181 
+Scale^k = 2.039e+128 
+(Time * Scale)^k = inf 
+1/k! = 1.118e-117 
+Value = inf 
+Exponentiation expansion truncated at k=79 
+After: max_val * (s.t)^k / k! = 1.37759e+193 
+ precision = 1.00e-14 
+reached inf : 1 
+Inf reached: incorrect calculation. 
