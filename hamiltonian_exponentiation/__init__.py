@@ -2,13 +2,20 @@
 # import libmatrix_utils as libmu 
 
 def exp_minus_i_h_t(src, t, precision=1e-16):
+		"""
+		Calls on C++ function to compute e^{-iHt}.
+		Provide parameters: 
+		- src: Hamiltonian to exponentiate
+		- t: time
+		- precision: 
+		"""
     import libmatrix_utils as libmu
     import numpy as np
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
     inf_reached = libmu.e_minus_i_h_t(src, dst, t, precision)
-    print(inf_reached)
+#    print(inf_reached)
     if(inf_reached):
-      print("Incorrect - reverting to linalg sparse function.")
+#      print("Incorrect - reverting to linalg sparse function.")
       import scipy
       from scipy import sparse
       from scipy import linalg
@@ -17,45 +24,8 @@ def exp_minus_i_h_t(src, t, precision=1e-16):
       expd_mtx = sparse.linalg.expm(-1.j*src*t)			
       return expd_mtx
     else:
-      print("Correct:")
+#      print("Correct:")
       return dst
-
-
-def expn_hamilt(src, precision=1e-52):
-    import libmatrix_utils as libmu
-    import numpy as np
-    dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
-    result = libmu.expm_special_cpp(src, dst, precision)
-    print(result)
-    return dst
-
-def e_i_hamilt(src, precision=1e-52):
-    import libmatrix_utils as libmu
-    import numpy as np
-    dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
-    result = libmu.exponentiate_i_hamiltonian(src, dst, precision)
-    print(result)
-    return dst
-
-def test_install():
-		print("Installation successful 15")	
-
-def new_test_install():
-		print("New Install test: 1")
-
-"""
-def sigmaz():
-    import numpy as np
-    return np.array([[1+0j, 0+0j], [0+0j, -1+0j]])
-
-def sigmax():
-		import numpy as np
-    return np.array([[0+0j, 1+0j], [1+0j, 0+0j]])
-
-def sigmay():
-    import numpy as np
-    return np.array([[0+0j, 0-1j], [0+1j, 0+0j]])
-"""
 
 def random_hamiltonian(number_qubits):
 	"""

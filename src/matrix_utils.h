@@ -324,7 +324,6 @@ public:
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
 		void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
-//    void add_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
 		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
@@ -338,8 +337,6 @@ public:
 		uint32_t *num_nonzeros_by_row;
 		uint32_t **nonzero_col_locations;
 		complex_t **nonzero_values;
-//		complex_t matrix_max_val;
-//		complex_t abs_matrix_max_val;
 
 private:
     void destroy()
@@ -370,6 +367,8 @@ private:
     uint32_t num_values;    // num_rows * num_cols 
     complex_t* values;      // the actual storage
 };
+
+
 
 class RealMatrix {
 public:
