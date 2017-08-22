@@ -18,7 +18,7 @@ src/*
 *.sh
 test*
 
-
+!test_qle.py
 !test_matrices/validate_expm_special.py
 !test_matrices/plot_expm.py
 !test_matrices/test_package.py

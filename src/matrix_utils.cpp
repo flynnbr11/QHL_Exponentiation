@@ -318,14 +318,13 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
     bool do_print = false;
 
 		ComplexMatrix rescaled_mtx(num_rows, num_cols);
-    if(rescale_method)
-    {
-		  norm_scalar = this -> get_max_element_magnitude();
-		  scalar_t scale = to_scalar(1.0/norm_scalar);
-			rescaled_mtx.make_zero();
-			rescaled_mtx.add_scaled_hermitian(*this, scale);
-			rescaled_mtx.compress_matrix_storage();
-		}
+
+		/* Rescale so that all matrix elements <= 1 */
+	  norm_scalar = this -> get_max_element_magnitude();
+	  scalar_t scale = to_scalar(1.0/norm_scalar);
+		rescaled_mtx.make_zero();
+		rescaled_mtx.add_scaled_hermitian(*this, scale);
+		rescaled_mtx.compress_matrix_storage();
 
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
@@ -335,30 +334,22 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 
     dst.make_zero();
 
-    double one_over_k_factorial = 1.0;
-    double time_tracker = 1.0;
     double k_fact = 1.0;
-    double scale_tracker = 1.0;
-		double current_max_element = this -> get_max_element_magnitude();
-    
+		double scale_time_over_k_factorial = 1.0;
+		// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
+
     for (uint32_t k = 0; !done; ++k)
     {
         if (k > 0)
       	{
-						one_over_k_factorial *= time;
-        		one_over_k_factorial /= k;
-						time_tracker *= time;
 						k_fact /= k;
-						if (rescale_method) 
-						{
-							one_over_k_factorial *= norm_scalar;
-							scale_tracker *= norm_scalar;
-        		}
+						scale_time_over_k_factorial *= time*norm_scalar/k;
 				}
 				
 
-        if (one_over_k_factorial * current_max_element >= precision)
+//        if (scale_time_over_k_factorial * current_max_element >= precision)
+        if (scale_time_over_k_factorial >= precision)
         { 
         /* 
         * This is where actual exponentiation happens by multiplying a running total,
@@ -381,7 +372,7 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
                 old_pa.compress_matrix_storage();
 									
                 old_pa.mul_herm_for_e_minus_i(rescaled_mtx, new_pa);                
-                current_max_element = new_pa.get_max_element_magnitude();
+                //current_max_element = new_pa.get_max_element_magnitude();
 						}	
 						
             complex_t one_over_k_factorial_simd;
@@ -389,19 +380,19 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
             /* Set symmetrical element */
 						if( (k)%4 == 0 )
 						{
-							one_over_k_factorial_simd = to_complex(one_over_k_factorial, 0.0); 
+							one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
 						}
 						else if ((k+1)%4 == 0 )
 						{
-							one_over_k_factorial_simd = to_complex(0.0, 1.0*one_over_k_factorial); 
+							one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
 						}					
 						else if ((k+2)%4 == 0)
 						{
-							one_over_k_factorial_simd = to_complex(-1.0*one_over_k_factorial, 0.0); 
+							one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
 						}
 						else if ( (k+3)%4 ==0)
 						{
-							one_over_k_factorial_simd = to_complex(0.0, -1.0*one_over_k_factorial); 
+							one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
 						}
 						else 
 						{
@@ -409,12 +400,16 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 						}
 
 						
-            if(!std::isfinite(scale_tracker*time_tracker*k_fact) || k_fact < 1e-300)
+            if(!std::isfinite(scale_time_over_k_factorial) || k_fact < 1e-306)
             {
+            /* 
+            * If values are intractable using double floating point precision,
+            * fail the process and the function returns 1 to indicate failure.
+            */
             	done = true;
             	infinite_val = true;
             }
-            else if (scale_tracker*time_tracker*k_fact < precision)
+            else if (scale_time_over_k_factorial < precision)
             {
             	done = true;
             }

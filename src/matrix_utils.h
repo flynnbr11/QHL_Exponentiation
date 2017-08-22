@@ -189,6 +189,7 @@ public:
 		{
 
 			complex_t matrix_max_val = to_complex(0.0, 0.0);
+			complex_t zero = to_complex(0.0,0.0);
 			double abs_matrix_max_val = ::mag_sqr(matrix_max_val);
 			double mtx_max=0.0;
 			double real;
@@ -196,10 +197,13 @@ public:
 			complex_t val;
 			for(uint32_t i = 0; i < num_rows * num_cols; ++i)
 			{
-				if(::mag_sqr(values[i]) > abs_matrix_max_val)
-				{
-					abs_matrix_max_val = ::mag_sqr(values[i]);
-				}
+//				if(values[i] != zero)
+//				{
+					if(::mag_sqr(values[i]) > abs_matrix_max_val)
+					{
+						abs_matrix_max_val = ::mag_sqr(values[i]);
+					}
+//				}
 			}
 			
 			double sqrt_max = sqrt(abs_matrix_max_val);
