@@ -30,7 +30,11 @@ import Evo as evo
 # TODO: generalise this to vectors of length 2^n... here n=1
 
 global use_linalg_global 
-use_linalg_global =1
+global print_prob_diff
+use_linalg_global = 1
+print_prob_diff = 0
+
+
 global num_probes
 global probes
 global probe_counter
@@ -86,7 +90,7 @@ def eval_loss(
 
 def get_prob(t, op_list, param_list, use_linalg=1):
     #use_linalg=1
-    prec = 1e-25
+    prec = 1e-150
     
     probe_preiodicity = 50
     num_terms = len(param_list)
@@ -101,9 +105,9 @@ def get_prob(t, op_list, param_list, use_linalg=1):
         mtx = unitary_param
         unitary_mtx = sp.linalg.expm(mtx)
     else: 
-        ham = hamiltonian
+#        ham = hamiltonian
 #        ham = hamiltonian[0,:,:]
-        unitary_mtx = h.exp_minus_i_h_t(ham, t, precision=prec)
+        unitary_mtx = h.exp_i_h_t(hamiltonian, t, plus_or_minus=-1.0, precision=prec)
     #h_unitary_mtx = pow(exp_h, 1.j)
     
 
@@ -230,17 +234,23 @@ class simulated_QLE(qi.FiniteOutcomeModel):
     def likelihood(self, outcome, modelparams, expparams):
         if len(modelparams.shape) == 1:
             modelparams = modelparams[..., np.newaxis]
-        
+        max_pr_diff=0
         t = expparams['ts']
         pr0 = np.zeros((modelparams.shape[0], expparams.shape[0])) 
         for idx_row in range(0, modelparams.shape[0]):
             for idx_col in range(0, expparams.shape[0]):
-                #pr_custom = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=0)
-                #pr_linalg = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=1)
-                pr = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=use_linalg_global)
-                pr0[idx_row, idx_col] = pr
+              if print_prob_diff == 1:
+                pr_custom = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=0)
+                pr_linalg = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=1)
+                #print("Diff in prob: ", pr_custom - pr_linalg)
+                if(np.abs(pr_custom - pr_linalg) > max_pr_diff):
+                  max_pr_diff = pr_custom-pr_linalg
+              pr = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row], use_linalg=use_linalg_global)
+              pr0[idx_row, idx_col] = pr
                 #print("diff bw custom and linalg probs: ", np.abs(pr_custom-pr_linalg))
 #                pr0[idx_row, idx_col] = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row])
+        if print_prob_diff == 1:
+          print("Max pr diff = ", max_pr_diff)
         likelihood = qi.FiniteOutcomeModel.pr0_to_likelihood_array(outcome, pr0)
         return likelihood    
 
@@ -288,12 +298,21 @@ def run_qle(param_list, op_list, n_particles, n_experiments, resample_thresh, re
 # to run QLE
 # set n_particles, n_experiments, op_list, param_list
 
-n_particles=1000
-n_experiments=300
+n_particles=500
+n_experiments=n_particles
+#n_experiments=200
+
 #op_list=np.array([evo.sigmax()])
 #param_list = np.array([[0.64]])
-op_list=np.array([evo.sigmax(), evo.sigmay()])
-param_list = np.array([[0.13, 0.66]])
+#op_list=np.array([evo.sigmax(), evo.sigmay()])
+#param_list = np.array([[0.13, 0.66]])
+
+#op_list=np.array([evo.sigmax(), evo.sigmay(), evo.sigmaz()])
+#param_list = np.array([[-0.41779883, 0.6153639, 1.27090946]])
+
+op_list=np.array([evo.sigmax()])
+param_list = np.array([[-0.41779883]])
+
 
 #op_list=np.array([evo.sigmax(), evo.sigmaz(), evo.sigmay()])
 #param_list = np.array([[0.44, 0.86, 0.5]])
@@ -312,9 +331,9 @@ colours = np.array(['r','g','b','k','y'])
 
 
 if use_linalg_global == 1:
-		plot_name = 'qle_plots/linalg_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
+		plot_name = 'qle_plots/time_cutoff_fnc/linalg_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
 else: 
-		plot_name = 'qle_plots/exp_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
+		plot_name = 'qle_plots/time_cutoff_fnc/exp_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
 
 
 for i in range(num_params):

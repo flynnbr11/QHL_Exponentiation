@@ -5,7 +5,7 @@ import sys
 python_version = int(sys.version[0])
 
 if python_version == 2:
-	print("Python version ", sys.version)
+	#print("Python version ", sys.version)
 	from setuptools import setup, Extension
 
 	"""
@@ -63,7 +63,7 @@ elif python_version == 3:
 #	from distutils.core import setup, Extension
 	from setuptools import setup, Extension
 
-	print("Python version ", sys.version)
+	#print("Python version ", sys.version)
 	libmatrix_utils = Extension("libmatrix_utils",
                 [
                  "./src/matrix_utils.cpp", 
@@ -72,7 +72,6 @@ elif python_version == 3:
                 extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11", "-I/usr/include/python3.5"],
                 extra_link_args=["-lm", "-lstdc++", "-lpython3.5m"],
                 include_dirs=["src/", "/usr/include/python3.5", numpy.get_include()]
-#                include_dirs=["src/", "/home/brian/miniconda3/bin/python3", numpy.get_include()]
                 )
 
 

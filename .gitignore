@@ -22,6 +22,7 @@ test*
 !hamiltonian_exponentiation/__init__.py
 !test_qle.py
 !test_matrices/validate_expm_special.py
+!test_matrices/evaluate_differences.py
 !test_matrices/plot_expm.py
 !test_matrices/test_package.py
 !src/matrix_utils.cpp

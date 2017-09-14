@@ -168,7 +168,7 @@ void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatr
 		printf("by this : \n");
 		rhs.debug_print();
 		//*/
-		
+				
 #if OPT_4
 		// printf("OPT 4 \n");
 		dst.make_zero();
@@ -307,7 +307,7 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
     }
 }
 
-bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision) const
+bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
     
@@ -336,6 +336,8 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 
     double k_fact = 1.0;
 		double scale_time_over_k_factorial = 1.0;
+		double time_k = 1.0;
+		double scale_k = 1.0;
 		// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
 
@@ -344,6 +346,8 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
         if (k > 0)
       	{
 						k_fact /= k;
+						time_k *=time;
+						scale_k*=norm_scalar;
 						scale_time_over_k_factorial *= time*norm_scalar/k;
 				}
 				
@@ -378,29 +382,52 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
             complex_t one_over_k_factorial_simd;
             
             /* Set symmetrical element */
-						if( (k)%4 == 0 )
-						{
-							one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
-						}
-						else if ((k+1)%4 == 0 )
-						{
-							one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
-						}					
-						else if ((k+2)%4 == 0)
-						{
-							one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
-						}
-						else if ( (k+3)%4 ==0)
-						{
-							one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
-						}
-						else 
-						{
-							printf("k = %u doesn't meet criteria.\n", k);
-						}
-
-						
-            if(!std::isfinite(scale_time_over_k_factorial) || k_fact < 1e-306)
+            //printf("plus_minus = %u\n", plus_minus);
+            if(plus_minus == true) // plus_minus = true -> (+i) 
+            {
+						  if((k)%4 == 0 ) // k=0,4,8...
+						  {
+							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ( (k+3)%4 ==0) // k = 1,5,9
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+						  }
+						  else if ((k+2)%4 == 0) // k = 2,6,10
+						  {
+							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+						  }					
+            }
+            else
+            { // plus_minus = false -> (-i)
+						  if((k)%4 == 0 ) // k=0,4,8...
+						  {
+							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ( (k+3)%4 ==0) // k = 1,5,9
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+						  }
+						  else if ((k+2)%4 == 0) // k = 2,6,10
+						  {
+							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+						  }					
+						  else 
+						  {
+							  printf("k = %u doesn't meet criteria.\n", k);
+						  }
+            }
+    
+//            if(!std::isfinite(scale_time_over_k_factorial) || k_fact < 1e-306)
+            if(!std::isfinite(scale_time_over_k_factorial) || !std::isfinite(scale_k*time_k) || !std::isfinite(scale_k) || time_k > 1e250 || k_fact < 1e-300)
             {
             /* 
             * If values are intractable using double floating point precision,

@@ -109,10 +109,11 @@ static PyObject* Exp_minus_iHt(PyObject *self, PyObject *args)
     std::string result_str;
     double precision = 0.0f;
     double time = 0.0f;
+    double plus_or_minus = 0.0f;
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
-    if (!PyArg_ParseTuple(args, "O!O!dd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &time, &precision))
+    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &time, &precision))
     {
         fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
@@ -144,24 +145,28 @@ static PyObject* Exp_minus_iHt(PyObject *self, PyObject *args)
         fprintf(stderr, "Error: %s, at %s %s:%d\n", error_str, __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
+    
+    bool plus_minus_flag = false; // if flag is false, e^{-iHt}; if flag is true, e^{iHt}
+    if (plus_or_minus == 1.0) 
+    {
+      plus_minus_flag = true;
+    } // else plus_minus_flag=false
 
     const ComplexMatrix src(src_rows, src_cols, src_ptr);
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
 		bool exp_reached_inf = false;
-		exp_reached_inf = src.expm_minus_i_h_t(dst, time, precision);
-		src.expm_minus_i_h_t(dst, time, precision);
+		exp_reached_inf = src.expm_minus_i_h_t(dst, time, precision, plus_minus_flag);
+	//	src.expm_minus_i_h_t(dst, time, precision, plus_minus_flag);
     
     result_str = "ok: e^{-iHt}";
     return Py_BuildValue("b", exp_reached_inf);
 }
 
-
-
-
 static PyMethodDef matrix_utils_methods[] = {
-    {"simple_test",             SimpleTest,                 METH_VARARGS, "Just a test."},
-    {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
-		{"e_minus_i_h_t", 					Exp_minus_iHt, METH_VARARGS, "Exponentiate {iHt} where H is input Hamiltonian, t is time given."},
+//    {"simple_test",             SimpleTest,                 METH_VARARGS, "Just a test."},
+//    {"expm_special_cpp",        Exp_minus_iHt,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
+      {"expm_special_cpp",        ExpmSpecial,                METH_VARARGS, "Exponentiate a diagonal sparse matrix."},
+	  	{"exp_pm_i_h_t", 					Exp_minus_iHt, METH_VARARGS, "Exponentiate {iHt} where H is input Hamiltonian, t is time given."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -191,6 +196,7 @@ PyMODINIT_FUNC initlibmatrix_utils(void)
 
 //*
 #elif PY_MAJOR_VERSION == 3
+/* TODO: This section is reason updating function framework doesn't work for Python3+*/
 
 static struct PyModuleDef libmatrix_utils =
 {
