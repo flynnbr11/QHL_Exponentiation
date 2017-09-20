@@ -34,7 +34,7 @@ global print_prob_diff
 global global_max_diff
 global exp_scalar_cutoff
 exp_scalar_cutoff = 25
-use_linalg_global = 1
+use_linalg_global = 0
 print_prob_diff = 0
 global_max_diff = 0
 
@@ -315,6 +315,7 @@ param_list = np.array([[0.73]])
 #op_list=np.array([evo.sigmax(), evo.sigmay(), evo.sigmaz()])
 #param_list = np.array([[-0.41779883, 0.6153639, 1.27090946]])
 
+print("param list: ", param_list)
 
 
 #op_list=np.array([evo.sigmax(), evo.sigmaz(), evo.sigmay()])
@@ -322,12 +323,12 @@ param_list = np.array([[0.73]])
 
 
 n_par = np.shape(param_list)[1]
-n_particles=200
-n_experiments=200
-num_tests=100
+n_particles=300
+n_experiments=300
+num_tests=3
 parameter_values=np.empty([n_par, num_tests])
 
-directory = 'qle_plots/validate_cutoff_'+str(exp_scalar_cutoff)
+directory = 'qle_plots/test_new_install'
 if not os.path.exists(directory):
     os.makedirs(directory)
 
@@ -350,12 +351,11 @@ for a in range(num_tests):
 	    plot_name = directory+'/plot_custom_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params_'+str(a)+'.png'
 	    csv_filename = directory+'/parameters_custom_'+str(n_par)+'_params_'+str(num_tests)+'_tests_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exps.csv'
 
-
+  plt.clf()
   for i in range(num_params):
       print('i=', i)
       print('True value for ', names[i], ' = ', param_list[0,i])
       print('Estimated value for ', names[i], ' = ', qle_results[i, num_exps -1], '\n')    
-      plt.clf()
       plt.axhline(y=param_list[0,i], xmin=0, xmax=n_experiments, hold=None, color=colours[i%len(colours)])
       plt.plot(qle_results[i], label=names[i],color=colours[i])
       plt.legend(loc='center right')

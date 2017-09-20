@@ -331,10 +331,7 @@ public:
     void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
 		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
-    void expm_special(ComplexMatrix& dst, double precision) const;
-		bool expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision, bool plus_minus) const;    
 		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
-    void cos_plus_i_sin(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
     void print_compressed_storage() const;
 

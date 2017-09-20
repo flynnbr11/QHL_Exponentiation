@@ -21,7 +21,7 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 27.5)
     if(scalar > scalar_cutoff):
       import scipy
       from scipy import linalg
-      print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (scalar).")
+      #print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (scalar).")
       if(np.shape(src)[0] > 63): # Large matrices -- worth using sparse.linalg
         from scipy import sparse
         from scipy.sparse import linalg
@@ -43,10 +43,10 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 27.5)
           expd_mtx = scipy.sparse.linalg.expm(scipy.sparse.csc_matrix(plus_or_minus*1.j*src*t))      
         else: 
           expd_mtx = scipy.linalg.expm(plus_or_minus*1.j*src*t)
-        print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (inf).")
+        #print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (inf).")
         return expd_mtx
       else:
-        print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Custom.")
+        #print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Custom.")
         return dst
 
 
