@@ -34,7 +34,7 @@ global print_prob_diff
 global global_max_diff
 global exp_scalar_cutoff
 exp_scalar_cutoff = 25
-use_linalg_global = 0
+use_linalg_global = 1
 print_prob_diff = 0
 global_max_diff = 0
 
@@ -309,7 +309,7 @@ def run_qle(param_list, op_list, n_particles, n_experiments, resample_thresh, re
 #n_experiments=200
 
 op_list=np.array([evo.sigmax()])
-param_list = np.array([[0.73]])
+param_list = np.array([[0.13]])
 #op_list=np.array([evo.sigmax(), evo.sigmay()])
 #param_list = np.array([[0.13, 0.66]])
 #op_list=np.array([evo.sigmax(), evo.sigmay(), evo.sigmaz()])
@@ -323,9 +323,9 @@ print("param list: ", param_list)
 
 
 n_par = np.shape(param_list)[1]
-n_particles=300
-n_experiments=300
-num_tests=3
+n_particles=301
+n_experiments=301
+num_tests=15
 parameter_values=np.empty([n_par, num_tests])
 
 directory = 'qle_plots/test_new_install'

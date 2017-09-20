@@ -60,10 +60,8 @@ if python_version == 2:
 		  
 		  
 elif python_version == 3: 
-#	from distutils.core import setup, Extension
 	from setuptools import setup, Extension
 
-	#print("Python version ", sys.version)
 	libmatrix_utils = Extension("libmatrix_utils",
                 [
                  "./src/matrix_utils.cpp", 
@@ -88,4 +86,5 @@ elif python_version == 3:
 		 
 else: 
 	print("Invalid Python version:", sys.version)
+	print("Only Python 2 and 3 supported.")
 	
