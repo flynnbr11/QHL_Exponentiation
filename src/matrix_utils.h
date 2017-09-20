@@ -333,6 +333,7 @@ public:
     void add_hermitian(const ComplexMatrix& rhs);
     void expm_special(ComplexMatrix& dst, double precision) const;
 		bool expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision, bool plus_minus) const;    
+		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
     void cos_plus_i_sin(ComplexMatrix& dst, double precision) const;
     void debug_print() const;
     void print_compressed_storage() const;
@@ -356,6 +357,11 @@ private:
 #endif
         }
 				if(allocated_nnz_array==1){
+					for (uint32_t i=0; i < num_rows; i++)
+					{
+						delete[] nonzero_col_locations[i]; 
+						delete[] nonzero_values[i];
+					}
 					delete[] num_nonzeros_by_row; 
 					delete[] nonzero_col_locations;
 					delete[] nonzero_values; 

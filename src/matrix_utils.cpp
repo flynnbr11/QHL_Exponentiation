@@ -310,7 +310,6 @@ void ComplexMatrix::expm_special(ComplexMatrix& dst, double precision) const
 bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double precision, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
-    
 		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
 
@@ -455,6 +454,162 @@ bool ComplexMatrix::expm_minus_i_h_t(ComplexMatrix& dst, double time, double pre
 
     return infinite_val;
 }
+
+
+bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const
+{
+    /* To avoid extra copying, we alternate power accumulation matrices */
+    double scalar_by_time = scale;
+
+		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
+    bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
+
+    double norm_scalar;
+    bool do_print = false;
+
+		ComplexMatrix rescaled_mtx(num_rows, num_cols);
+
+		/* Rescale so that all matrix elements <= 1 */
+
+    /*
+	  norm_scalar = this -> get_max_element_magnitude();
+	  scalar_t scale = to_scalar(1.0/norm_scalar);
+		rescaled_mtx.make_zero();
+		rescaled_mtx.add_scaled_hermitian(*this, scale);
+		rescaled_mtx.compress_matrix_storage();
+    
+    scalar_t one = to_scalar(1.0);
+		rescaled_mtx.make_zero();
+		rescaled_mtx.add_scaled_hermitian(*this, one);
+		rescaled_mtx.compress_matrix_storage();
+    */
+    
+    ComplexMatrix power_accumulator0(num_rows, num_cols);
+    ComplexMatrix power_accumulator1(num_rows, num_cols);
+    power_accumulator0.make_identity();
+    power_accumulator1.make_identity();
+    ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
+
+    dst.make_zero();
+
+    double k_fact = 1.0;
+		double scale_time_over_k_factorial = 1.0;
+		// double current_max_element = this -> get_max_element_magnitude();
+    bool done = false;
+
+    for (uint32_t k = 0; !done; ++k)
+    {
+        if (k > 0)
+      	{
+						k_fact /= k;
+						scale_time_over_k_factorial *= scalar_by_time/k;
+				}
+				
+//        if (scale_time_over_k_factorial * current_max_element >= precision)
+        if (scale_time_over_k_factorial >= precision)
+        { 
+        /* 
+        * This is where actual exponentiation happens by multiplying a running total,
+        * H^m, by H to get H^m. 
+        * This is then multiplied by (t*s)^m/m! and added to become the new running total.
+        * Here s is a scalar - the largest magnitude of any matrix element. This is factored out 
+        * of the matrix so that all values inside the matrix are less than one, 
+        * to keep the multiplication from diverging and introducing matrix elements 
+        * larger than the computer can handle.
+        * t is the time set by the heuristic. 
+        *
+        */
+        
+            uint32_t alternate = k & 1;
+            ComplexMatrix& new_pa = *pa[alternate];
+            ComplexMatrix& old_pa = *pa[1 - alternate];
+            if (k > 0)
+            {
+                new_pa.compress_matrix_storage();
+                old_pa.compress_matrix_storage();
+									
+                old_pa.mul_herm_for_e_minus_i(*this, new_pa);                
+                //current_max_element = new_pa.get_max_element_magnitude();
+						}	
+						
+            complex_t one_over_k_factorial_simd;
+            
+            /* Set symmetrical element */
+            //printf("plus_minus = %u\n", plus_minus);
+            if(plus_minus == true) // plus_minus = true -> (+i) 
+            {
+						  if((k)%4 == 0 ) // k=0,4,8...
+						  {
+							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ( (k+3)%4 ==0) // k = 1,5,9
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+						  }
+						  else if ((k+2)%4 == 0) // k = 2,6,10
+						  {
+							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+						  }					
+            }
+            else
+            { // plus_minus = false -> (-i)
+						  if((k)%4 == 0 ) // k=0,4,8...
+						  {
+							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ( (k+3)%4 ==0) // k = 1,5,9
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+						  }
+						  else if ((k+2)%4 == 0) // k = 2,6,10
+						  {
+							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+						  }
+						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
+						  {
+							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+						  }					
+						  else 
+						  {
+							  printf("k = %u doesn't meet criteria.\n", k);
+						  }
+            }
+    
+            if(!std::isfinite(scale_time_over_k_factorial) || k_fact < 1e-300)
+            {
+            /* 
+            * If values are intractable using double floating point precision,
+            * fail the process and the function returns 1 to indicate failure.
+            */
+            	done = true;
+            	infinite_val = true;
+            }
+            else if (scale_time_over_k_factorial < precision)
+            {
+            	done = true;
+            }
+            
+            else
+            { /* only add to destination matrix if not yet at inf */
+		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+            }
+            
+        }
+        else
+        {
+            done = true;
+        }
+    }
+
+    return infinite_val;
+}
+
+
+
 
 
 #define MAX_PERM_SIZE 128

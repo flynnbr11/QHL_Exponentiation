@@ -31,9 +31,12 @@ import Evo as evo
 
 global use_linalg_global 
 global print_prob_diff
+global global_max_diff
+global exp_scalar_cutoff
+exp_scalar_cutoff = 25
 use_linalg_global = 1
 print_prob_diff = 0
-
+global_max_diff = 0
 
 global num_probes
 global probes
@@ -90,51 +93,55 @@ def eval_loss(
 
 def get_prob(t, op_list, param_list, use_linalg=1):
     #use_linalg=1
-    prec = 1e-150
+    compare_custom_linalg = False
+    prec = 1e-25
     
     probe_preiodicity = 50
     num_terms = len(param_list)
     hamiltonian = 0
     for i in range(num_terms):
         hamiltonian += param_list[i]*op_list[i,:,:]
+  
 
-    
-    if use_linalg == 1:    
-        unitary_param = (-1.j)*hamiltonian*t
-        #mtx = unitary_param[0,:,:]
-        mtx = unitary_param
-        unitary_mtx = sp.linalg.expm(mtx)
-    else: 
-#        ham = hamiltonian
-#        ham = hamiltonian[0,:,:]
-        unitary_mtx = h.exp_i_h_t(hamiltonian, t, plus_or_minus=-1.0, precision=prec)
-    #h_unitary_mtx = pow(exp_h, 1.j)
-    
-
-    """
-    unitary_param = (-1.j)*hamiltonian*t
-    #mtx = unitary_param[0,:,:]
-    mtx = unitary_param
-    scipy_mtx = sp.linalg.expm(mtx)
-    ham = hamiltonian
-#        ham = hamiltonian[0,:,:]
-    custom = h.exp_minus_i_h_t(ham, t, precision=prec)
-
-    max_diff = np.max(custom - scipy_mtx)
-    print("Biggest difference between matrices = ", max_diff)
-    
-    if use_linalg==1:
-        unitary_mtx = scipy_mtx
-    else: 
-        unitary_mtx = custom
-    """ 
-    
     normalised_probe = np.array([probes[probe_counter%num_probes]])
     probe_bra = normalised_probe
     probe_ket = np.transpose(normalised_probe)
-    u_probe = unitary_mtx @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
-    probe_u_probe = probe_bra @ u_probe # multiply be bra form of probe
-    probability = abs(probe_u_probe)**2
+
+    if compare_custom_linalg: 
+      linalg = sp.linalg.expm(-1.j*hamiltonian*t)
+      custom = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff)
+      print("Matrix elements biggest error: ", np.max(np.abs(linalg-custom)))
+
+      lin_u_probe = linalg @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
+      probe_u_probe = probe_bra @ lin_u_probe # multiply be bra form of probe
+      lin_probability = abs(probe_u_probe)**2
+
+      cust_u_probe = custom @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
+      probe_u_probe = probe_bra @ cust_u_probe # multiply be bra form of probe
+      cust_probability = abs(probe_u_probe)**2
+      
+      if(np.abs(lin_probability - cust_probability) > 1e-5):
+        print ("----------- High diff -----------")
+      print("Diff in prob : ", np.abs(lin_probability - cust_probability))
+      if use_linalg == 1:    
+        probability = lin_probability
+      else: 
+        probability = cust_probability
+
+    else:       
+      if use_linalg == 1:    
+          mtx = (-1.j)*hamiltonian*t
+          unitary_mtx = sp.linalg.expm(mtx)
+      else: 
+          unitary_mtx = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff)
+
+      
+#      normalised_probe = np.array([probes[probe_counter%num_probes]])
+#      probe_bra = normalised_probe
+#      probe_ket = np.transpose(normalised_probe)
+      u_probe = unitary_mtx @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
+      probe_u_probe = probe_bra @ u_probe # multiply be bra form of probe
+      probability = abs(probe_u_probe)**2
 
     return float(probability)
 
@@ -145,7 +152,7 @@ class tHeurist(qi.Heuristic):
     
     def __init__(self, updater, t_field='ts',
                  t_func=identity,
-                 maxiters=10
+                 maxiters=20
                  ):
         super(tHeurist, self).__init__(updater)
         self._t = t_field
@@ -250,6 +257,7 @@ class simulated_QLE(qi.FiniteOutcomeModel):
                 #print("diff bw custom and linalg probs: ", np.abs(pr_custom-pr_linalg))
 #                pr0[idx_row, idx_col] = get_prob(t=t, op_list= self._op_list, param_list = modelparams[idx_row])
         if print_prob_diff == 1:
+          print("Time = ",t)
           print("Max pr diff = ", max_pr_diff)
         likelihood = qi.FiniteOutcomeModel.pr0_to_likelihood_array(outcome, pr0)
         return likelihood    
@@ -298,20 +306,15 @@ def run_qle(param_list, op_list, n_particles, n_experiments, resample_thresh, re
 # to run QLE
 # set n_particles, n_experiments, op_list, param_list
 
-n_particles=500
-n_experiments=n_particles
 #n_experiments=200
 
-#op_list=np.array([evo.sigmax()])
-#param_list = np.array([[0.64]])
+op_list=np.array([evo.sigmax()])
+param_list = np.array([[0.73]])
 #op_list=np.array([evo.sigmax(), evo.sigmay()])
 #param_list = np.array([[0.13, 0.66]])
-
 #op_list=np.array([evo.sigmax(), evo.sigmay(), evo.sigmaz()])
 #param_list = np.array([[-0.41779883, 0.6153639, 1.27090946]])
 
-op_list=np.array([evo.sigmax()])
-param_list = np.array([[-0.41779883]])
 
 
 #op_list=np.array([evo.sigmax(), evo.sigmaz(), evo.sigmay()])
@@ -319,35 +322,52 @@ param_list = np.array([[-0.41779883]])
 
 
 n_par = np.shape(param_list)[1]
+n_particles=200
+n_experiments=200
+num_tests=100
+parameter_values=np.empty([n_par, num_tests])
 
-# For loop to calculate quadratic loss for ranges of resampling threshold & a. 
-qle_results, loss, locations, weights, times, names, resample_points = \
-    run_qle(param_list=param_list, op_list=op_list, n_particles=n_particles, \
-            n_experiments=n_experiments, resample_thresh=0.5, resample_a=None)
-    
-num_params = np.shape(qle_results)[0]
-num_exps = np.shape(qle_results)[1]
-colours = np.array(['r','g','b','k','y'])
+directory = 'qle_plots/validate_cutoff_'+str(exp_scalar_cutoff)
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+for a in range(num_tests):
+  print("a=", a)
+  # For loop to calculate quadratic loss for ranges of resampling threshold & a. 
+  qle_results, loss, locations, weights, times, names, resample_points = \
+      run_qle(param_list=param_list, op_list=op_list, n_particles=n_particles, \
+              n_experiments=n_experiments, resample_thresh=0.5, resample_a=None)
+      
+  num_params = np.shape(qle_results)[0]
+  num_exps = np.shape(qle_results)[1]
+  colours = np.array(['r','g','b','k','y'])
 
 
-if use_linalg_global == 1:
-		plot_name = 'qle_plots/time_cutoff_fnc/linalg_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
-else: 
-		plot_name = 'qle_plots/time_cutoff_fnc/exp_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params.png'
+  if use_linalg_global == 1:
+	    plot_name = directory+'/plot_linalg_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params_'+str(a)+'.png'
+	    csv_filename = directory+'/parameters_linalg_'+str(n_par)+'_params_'+str(num_tests)+'_tests_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exps.csv'
+  else: 
+	    plot_name = directory+'/plot_custom_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exp_' + str(n_par) +'_params_'+str(a)+'.png'
+	    csv_filename = directory+'/parameters_custom_'+str(n_par)+'_params_'+str(num_tests)+'_tests_' + str(n_particles)+ '_part_' + str(n_experiments) + '_exps.csv'
 
 
-for i in range(num_params):
-    print('i=', i)
-    print('True value for ', names[i], ' = ', param_list[0,i])
-    print('Estimated value for ', names[i], ' = ', qle_results[i, num_exps -1], '\n')    
-    plt.axhline(y=param_list[0,i], xmin=0, xmax=n_experiments, hold=None, color=colours[i%len(colours)])
-    plt.plot(qle_results[i], label=names[i],color=colours[i])
-    plt.legend(loc='center right')
-    plt.title('Hamiltonian Expn fnc')
-    plt.xlabel('Experiment Number')
-    plt.ylabel(names[i])
-    plt.savefig(plot_name)    
+  for i in range(num_params):
+      print('i=', i)
+      print('True value for ', names[i], ' = ', param_list[0,i])
+      print('Estimated value for ', names[i], ' = ', qle_results[i, num_exps -1], '\n')    
+      plt.clf()
+      plt.axhline(y=param_list[0,i], xmin=0, xmax=n_experiments, hold=None, color=colours[i%len(colours)])
+      plt.plot(qle_results[i], label=names[i],color=colours[i])
+      plt.legend(loc='center right')
+      plt.title('Hamiltonian Expn fnc')
+      plt.xlabel('Experiment Number')
+      plt.ylabel(names[i])
+      plt.savefig(plot_name)
+      parameter_values[i][a] = (qle_results[i, num_exps -1])
+          
     
 #plt.savefig('e_i_hamilt_times/improvement_'+str(low)+'_to_'+str(high)+'_qubits.png')
+np.savetxt(csv_filename, parameter_values, delimiter=",")
+  
     
-    
+
