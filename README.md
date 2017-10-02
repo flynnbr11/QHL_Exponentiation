@@ -18,9 +18,9 @@ The primary function here, exp_ham, takes a Hamiltonian and a time, and computes
 It does this by series expansion, truncating the series when it reaches the declared precision.
 e^{x} = x^0 / 0! + x^1 / 1! + ... + x^n/n! 
 
-In particular, the Hamiltonian H is a sparse, Hermitian matrix. This is recast to a*H', such that all elements of H' are less than one, and a is some scalar. 
+In particular, the Hamiltonian H is a sparse, Hermitian matrix. This is recast to a*H', such that all elements of H' are less than one, and a is some scalar. (Say time*a = s, a scalar). The expansion is:
 
-e^{-iHt} = e^{-i* a*t * H'} = e^{-i* s * H'} = I - i{s^1/1! } H^1 - {s^2/2! } H^2 + i{s^3/3! } H^3 + ...
+e^{-iHt} = e^{-i* a*t * H'} = e^{-i * s * H'} = I - i{s^1/1! } H^1 - {s^2/2! } H^2 + i{s^3/3! } H^3 + ...
 
 Errors grow exponentially. It was observed that when s > 25, the difference between this exponentiation and the Pade approximation computed by linalg/scipy/scipy.sparse expm function, are of order 10^{-6}. This scalar_cutoff is a control: the user can determine how close to the Pade approximation is required. When this value is greater than the scalar_cutoff specified, the function defaults to using Python inbuilt functionality. Lookup scalar_cutoff Vs difference here: https://docs.google.com/spreadsheets/d/1Cs2l5HlAw82tCgqmLk3hG_GPNiEicXe9qWSNgEmMZyk/edit?usp=sharing.
 
