@@ -19,6 +19,7 @@ import datetime
 import sys, os
 import time as time
 import matplotlib.mlab as mlab
+from decimal import Decimal
 dire = os.getcwd()
 
 imp.reload(qi)
@@ -34,7 +35,7 @@ global print_prob_diff
 global global_max_diff
 global exp_scalar_cutoff
 exp_scalar_cutoff = 25
-use_linalg_global = 1
+use_linalg_global = 0
 print_prob_diff = 0
 global_max_diff = 0
 
@@ -89,11 +90,9 @@ def eval_loss(
 
     return loss
 
-
-
 def get_prob(t, op_list, param_list, use_linalg=1):
     #use_linalg=1
-    compare_custom_linalg = False
+    compare_custom_linalg = True
     prec = 1e-25
     
     probe_preiodicity = 50
@@ -101,7 +100,9 @@ def get_prob(t, op_list, param_list, use_linalg=1):
     hamiltonian = 0
     for i in range(num_terms):
         hamiltonian += param_list[i]*op_list[i,:,:]
-  
+        # would have to take exponentials here
+        # write new fnc: hamiltonian_build_and_exp
+        # - take op_list and param_list, compute e_{-iH1 dt}^n * ... * e_{-iHm dt}^n
 
     normalised_probe = np.array([probes[probe_counter%num_probes]])
     probe_bra = normalised_probe
@@ -109,8 +110,8 @@ def get_prob(t, op_list, param_list, use_linalg=1):
 
     if compare_custom_linalg: 
       linalg = sp.linalg.expm(-1.j*hamiltonian*t)
-      custom = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff)
-      print("Matrix elements biggest error: ", np.max(np.abs(linalg-custom)))
+      custom = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=True)
+      print("Matrix diff: %.1E mtx" %np.max(np.abs(linalg-custom)))
 
       lin_u_probe = linalg @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
       probe_u_probe = probe_bra @ lin_u_probe # multiply be bra form of probe
@@ -122,7 +123,7 @@ def get_prob(t, op_list, param_list, use_linalg=1):
       
       if(np.abs(lin_probability - cust_probability) > 1e-5):
         print ("----------- High diff -----------")
-      print("Diff in prob : ", np.abs(lin_probability - cust_probability))
+      print("Diff %.1E pr" %np.abs(lin_probability - cust_probability))
       if use_linalg == 1:    
         probability = lin_probability
       else: 
@@ -133,7 +134,7 @@ def get_prob(t, op_list, param_list, use_linalg=1):
           mtx = (-1.j)*hamiltonian*t
           unitary_mtx = sp.linalg.expm(mtx)
       else: 
-          unitary_mtx = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff)
+          unitary_mtx = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=True)
 
       
 #      normalised_probe = np.array([probes[probe_counter%num_probes]])
@@ -325,7 +326,7 @@ print("param list: ", param_list)
 n_par = np.shape(param_list)[1]
 n_particles=301
 n_experiments=301
-num_tests=15
+num_tests=3
 parameter_values=np.empty([n_par, num_tests])
 
 directory = 'qle_plots/test_new_install'
