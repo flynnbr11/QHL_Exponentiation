@@ -10,6 +10,7 @@
 #include "matrix_utils.h"
 
 #define VERBOSE 0
+#define PRINT_LINE_DEBUG 0
 
 void ComplexMatrix::mag_sqr(RealMatrix& dst) const
 {
@@ -51,17 +52,18 @@ void ComplexMatrix::make_zero()
 
 void ComplexMatrix::print_compressed_storage() const
 {
+  printf("Print Compressed Storage \n");
 	printf("Max nnz in any row : %u \n", max_nnz_in_a_row);
 
 	for(uint32_t i=0; i<num_rows; i++){
-		printf("Nonzeros in row %u :\n", i);
-		for(uint32_t j=0; j< num_nonzeros_by_row[i]; j++){
+		printf("There are %u Nonzeros in row %u :\n",num_nonzeros_by_row[i], i);
+		for(uint32_t j=0; j<num_nonzeros_by_row[i]; j++){
 			printf("Loc :%u, \t", nonzero_col_locations[i][j]);
 			complex_t val = nonzero_values[i][j];
-			printf("Val :%.2f + %.2f i, \n", get_real(val), get_imag(val));
+			printf("Val :\t %.2f + %.2f i, \n", get_real(val), get_imag(val));
 		}
 	}
-
+  printf("Print Compressed Storage -- End of method\n");
 }
 
 #define OPT_3 0 // opt 3 correctly exploits Symmetrical shape, but not sparsity. 
@@ -253,36 +255,23 @@ void ComplexMatrix::add_hermitian(const ComplexMatrix& rhs)
 bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
-    double scalar_by_time = scale;
+    if(PRINT_LINE_DEBUG) printf("In exp ham: \n");
+    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
+    double scalar_by_time = scale;
 		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
-
     double norm_scalar;
     bool do_print = false;
 
-		ComplexMatrix rescaled_mtx(num_rows, num_cols);
-
-		/* Rescale so that all matrix elements <= 1 */
-
-    /*
-	  norm_scalar = this -> get_max_element_magnitude();
-	  scalar_t scale = to_scalar(1.0/norm_scalar);
-		rescaled_mtx.make_zero();
-		rescaled_mtx.add_scaled_hermitian(*this, scale);
-		rescaled_mtx.compress_matrix_storage();
-    
-    scalar_t one = to_scalar(1.0);
-		rescaled_mtx.make_zero();
-		rescaled_mtx.add_scaled_hermitian(*this, one);
-		rescaled_mtx.compress_matrix_storage();
-    */
-    
+    printf("Num rows: %u cols: %u \n", num_rows, num_cols);
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
     power_accumulator1.make_identity();
+    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
+    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     dst.make_zero();
 
@@ -290,6 +279,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 		double scale_time_over_k_factorial = 1.0;
 		// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
+    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     for (uint32_t k = 0; !done; ++k)
     {
@@ -398,6 +388,8 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             done = true;
         }
     }
+    dst.compress_matrix_storage();
+    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     return infinite_val;
 }

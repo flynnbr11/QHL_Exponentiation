@@ -102,6 +102,43 @@ public:
     		// if(VERBOSE_H) debug_print();     		
         if(COMPRESS) compress_matrix_storage();
     }
+
+    ComplexMatrix(uint32_t rows, uint32_t max_nnz, complex_t** nnz_vals, uint32_t* nnz_by_row, uint32_t** nnz_col_locations)
+    : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
+    {
+      printf("Matrix constructor for sparse matrix. \n");
+      num_cols=num_rows;
+      num_values = num_rows * num_cols;
+			max_nnz_in_a_row = max_nnz;
+
+			num_nonzeros_by_row = new uint32_t[num_rows];
+			nonzero_col_locations = new uint32_t*[num_rows];
+			nonzero_values = new complex_t*[num_rows];
+
+			for(uint32_t i=0; i<num_rows; i++)
+			{
+				nonzero_col_locations[i] = new uint32_t[max_nnz];
+				nonzero_values[i] = new complex_t[max_nnz];
+      }
+
+			for(uint32_t i=0; i<num_rows; i++)
+			{
+			  num_nonzeros_by_row[i] = nnz_by_row[i];
+			  
+        for(uint32_t j=0; j<max_nnz; j++)
+        {
+          nonzero_col_locations[i][j] = nnz_col_locations[i][j];
+          nonzero_values[i][j] =nnz_vals[i][j];
+        }
+			}
+			
+			for(uint32_t i=0; i<num_rows;i++)
+			{
+			  printf("i= %u \t nnz in row = %u \n", i, num_nonzeros_by_row[i]);
+			}
+//      print_compressed_storage();
+    }
+  
     ~ComplexMatrix()
     {
         destroy();
@@ -265,7 +302,7 @@ public:
 				}
 				allocated_nnz_array = 1;
 				num_nonzeros_by_row = new uint32_t[num_rows];
-    			max_nnz_in_a_row = 0;
+    		max_nnz_in_a_row = 0;
 
 				//if(VERBOSE_H) debug_print();
 				
