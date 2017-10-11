@@ -131,11 +131,6 @@ public:
           nonzero_values[i][j] =nnz_vals[i][j];
         }
 			}
-			
-			for(uint32_t i=0; i<num_rows;i++)
-			{
-			  printf("i= %u \t nnz in row = %u \n", i, num_nonzeros_by_row[i]);
-			}
 //      print_compressed_storage();
     }
   
@@ -284,7 +279,7 @@ public:
 			
 		}
 
-
+    
 		void compress_matrix_storage() 
 		{
         complex_t complex_zero = to_complex(0.0, 0.0);
@@ -347,6 +342,62 @@ public:
 				
 		}
 		
+		void allocate_sparse(uint32_t max_nnz)
+		{
+		  num_nonzeros_by_row = new uint32_t[num_rows];
+		  nonzero_col_locations = new uint32_t*[num_rows];
+		  nonzero_values = new complex_t*[num_rows];
+
+		  for(uint32_t i=0; i<num_rows; i++)
+		  {
+			  nonzero_col_locations[i] = new uint32_t[max_nnz];
+			  nonzero_values[i] = new complex_t[max_nnz];
+      }
+      allocated_nnz_array=true;
+
+		}
+		
+		void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
+    {
+      printf("Reallocating sparse matrix \n");
+      printf("Max NNZ within reallocate fnc: %u \n", new_max_nnz);
+      max_nnz_in_a_row = new_max_nnz;
+      allocated_nnz_array=true;
+
+			for (uint32_t i=0; i < num_rows; i++)
+			{
+				delete[] nonzero_col_locations[i]; 
+				delete[] nonzero_values[i];
+			}
+			//delete[] num_nonzeros_by_row; 
+			delete[] nonzero_col_locations;
+			delete[] nonzero_values; 
+      
+		  //num_nonzeros_by_row = new uint32_t[num_rows];
+		  nonzero_col_locations = new uint32_t*[num_rows];
+		  nonzero_values = new complex_t*[num_rows];
+
+		  for(uint32_t i=0; i<num_rows; i++)
+		  {
+			  nonzero_col_locations[i] = new uint32_t[new_max_nnz];
+			  nonzero_values[i] = new complex_t[new_max_nnz];
+      }
+      
+      for(uint32_t i=0; i<num_rows; i++)
+      {
+        num_nonzeros_by_row[i] = tmp_nnz_by_row[i];
+        for(uint32_t j=0; j<new_max_nnz; j++)
+        {
+          nonzero_values[i][j] = tmp_nnz_vals[i][j];
+          nonzero_col_locations[i][j] = tmp_nnz_col_locs[i][j];
+        }
+      }
+      // TODO: fill nonzero vals and locs with tmp vals/locs.
+      
+      
+    }
+
+		
     void allocate(uint32_t rows, uint32_t cols)
     {
         self_allocated = true;
@@ -364,11 +415,15 @@ public:
     void make_identity();
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
+		void sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst);
+		void sparse_hermitian_mult_old(const ComplexMatrix& rhs, ComplexMatrix& dst);
 		void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
 		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+		void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
 		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
+		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
     void debug_print() const;
     void print_compressed_storage() const;
 
