@@ -359,8 +359,20 @@ public:
 		
 		void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
     {
-      printf("Reallocating sparse matrix \n");
-      printf("Max NNZ within reallocate fnc: %u \n", new_max_nnz);
+      printf("[reallocate] Reallocating sparse matrix \n");
+      printf("[reallocate] Max NNZ within reallocate fnc: %u \n", new_max_nnz);
+
+      for(uint32_t i=0; i<num_rows; i++)
+      {
+        printf("[reallocate - start] Row %u has %u NNZ \n", i, tmp_nnz_by_row[i]);
+        for(uint32_t j=0; j<tmp_nnz_by_row[i]; j++)
+        {
+          complex_t val = tmp_nnz_vals[i][j];
+          uint32_t col = tmp_nnz_col_locs[i][j];
+          printf("[reallocate - start] Col %u \t Val %.2e + %.2e i \n", col, get_real(val), get_imag(val));
+        }
+      }
+    
       max_nnz_in_a_row = new_max_nnz;
       allocated_nnz_array=true;
 
@@ -385,15 +397,38 @@ public:
       
       for(uint32_t i=0; i<num_rows; i++)
       {
+        complex_t complex_zero = to_complex(0.0, 0.0);
         num_nonzeros_by_row[i] = tmp_nnz_by_row[i];
+        printf("[reallocate - writing] Row %u has %u NNZ \n", i,tmp_nnz_by_row[i]);
+        uint32_t nnz_in_this_row = tmp_nnz_by_row[i];;
         for(uint32_t j=0; j<new_max_nnz; j++)
         {
-          nonzero_values[i][j] = tmp_nnz_vals[i][j];
-          nonzero_col_locations[i][j] = tmp_nnz_col_locs[i][j];
+          if(j<nnz_in_this_row)
+          {
+            nonzero_values[i][j] = tmp_nnz_vals[i][j];
+            nonzero_col_locations[i][j] = tmp_nnz_col_locs[i][j];
+            printf("[reallocate - writing] row %u used. Idx %u full \n", i, j);
+          }
+          else
+          {
+            printf("[reallocate - writing] row %u filled. Idx %u empty \n", i, j);
+            nonzero_values[i][j] = complex_zero;
+            nonzero_col_locations[i][j] = num_cols;
+          }
         }
       }
-      // TODO: fill nonzero vals and locs with tmp vals/locs.
+      /*
+for(uint32_t l=k; l < max_nnz_in_a_row; l++)
+{
+  nonzero_col_locations[i][l] = num_cols; // indicate there is no more non zero elements
+  nonzero_values[i][l] = complex_zero;
+} 		*/
+
       
+      
+      // TODO: fill nonzero vals and locs with tmp vals/locs.
+      printf("[reallocate] After reallocation, THIS:\n");
+      print_compressed_storage();
       
     }
 
