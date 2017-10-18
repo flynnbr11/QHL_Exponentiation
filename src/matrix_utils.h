@@ -5,12 +5,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#include <cmath>
 #include <malloc.h>
 #include <string.h>
 #include <emmintrin.h>
 #include <immintrin.h>
 #include <pmmintrin.h>
-#include <random>
+//#include <random>
 #include <vector>
 typedef __m128d scalar_t;
 typedef __m128d complex_t;
@@ -442,7 +443,8 @@ for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 #ifdef MSVC
         values = (complex_t*)_aligned_malloc(num_values * sizeof(complex_t), 16);
 #else
-        values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
+//        values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
+        values = (complex_t*)malloc(num_values * sizeof(complex_t));
 #endif
 				if(COMPRESS) compress_matrix_storage();
     }
