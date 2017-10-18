@@ -358,19 +358,20 @@ public:
 
 		}
 		
+    bool print_reallocate = false;
 		void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
     {
-      printf("[reallocate] Reallocating sparse matrix \n");
-      printf("[reallocate] Max NNZ within reallocate fnc: %u \n", new_max_nnz);
+      if(print_reallocate) printf("[reallocate] Reallocating sparse matrix \n");
+      if(print_reallocate) printf("[reallocate] Max NNZ within reallocate fnc: %u \n", new_max_nnz);
 
       for(uint32_t i=0; i<num_rows; i++)
       {
-        printf("[reallocate - start] Row %u has %u NNZ \n", i, tmp_nnz_by_row[i]);
+        if(print_reallocate) printf("[reallocate - start] Row %u has %u NNZ \n", i, tmp_nnz_by_row[i]);
         for(uint32_t j=0; j<tmp_nnz_by_row[i]; j++)
         {
           complex_t val = tmp_nnz_vals[i][j];
           uint32_t col = tmp_nnz_col_locs[i][j];
-          printf("[reallocate - start] Col %u \t Val %.2e + %.2e i \n", col, get_real(val), get_imag(val));
+          if(print_reallocate) printf("[reallocate - start] Col %u \t Val %.2e + %.2e i \n", col, get_real(val), get_imag(val));
         }
       }
     
@@ -400,7 +401,7 @@ public:
       {
         complex_t complex_zero = to_complex(0.0, 0.0);
         num_nonzeros_by_row[i] = tmp_nnz_by_row[i];
-        printf("[reallocate - writing] Row %u has %u NNZ \n", i,tmp_nnz_by_row[i]);
+        if(print_reallocate) printf("[reallocate - writing] Row %u has %u NNZ \n", i,tmp_nnz_by_row[i]);
         uint32_t nnz_in_this_row = tmp_nnz_by_row[i];;
         for(uint32_t j=0; j<new_max_nnz; j++)
         {
@@ -408,11 +409,11 @@ public:
           {
             nonzero_values[i][j] = tmp_nnz_vals[i][j];
             nonzero_col_locations[i][j] = tmp_nnz_col_locs[i][j];
-            printf("[reallocate - writing] row %u used. Idx %u full \n", i, j);
+            if(print_reallocate) printf("[reallocate - writing] row %u used. Idx %u full \n", i, j);
           }
           else
           {
-            printf("[reallocate - writing] row %u filled. Idx %u empty \n", i, j);
+            if(print_reallocate) printf("[reallocate - writing] row %u filled. Idx %u empty \n", i, j);
             nonzero_values[i][j] = complex_zero;
             nonzero_col_locations[i][j] = num_cols;
           }
@@ -465,6 +466,7 @@ for(uint32_t l=k; l < max_nnz_in_a_row; l++)
     void print_compressed_storage_full() const;
     void print_compressed_storage() const;
     void swap_matrices(ComplexMatrix& other);
+    void steal_values(const ComplexMatrix& other);
 
 
     uint32_t max_nnz_in_a_row;

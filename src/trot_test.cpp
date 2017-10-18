@@ -4,8 +4,8 @@ typedef __m128d scalar_t;
 typedef __m128d complex_t;
 
 #define TEST_MUL 0
-#define TEST_EXP 1
 #define TEST_ADD_HERM 0
+#define TEST_EXP 1
 
 #define TEST_MTX 1
 
@@ -98,6 +98,11 @@ int main()
   if(TEST_ADD_HERM)
   {
 
+    printf("\n\nAdding : LHS \n");
+    mtx_two.print_compressed_storage_full();
+    printf("\nAdding : RHS \n");
+    test_mtx.print_compressed_storage_full();
+    printf("\n\n");
     mtx_two.add_complex_scaled_hermitian_sparse(test_mtx, one);    
 
     printf("\n \n \nSUM: \n");
