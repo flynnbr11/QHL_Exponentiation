@@ -460,7 +460,10 @@ for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
 		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
     void debug_print() const;
+    void print_compressed_storage_full() const;
     void print_compressed_storage() const;
+    void swap_matrices(ComplexMatrix& other);
+
 
     uint32_t max_nnz_in_a_row;
 		uint32_t *num_nonzeros_by_row;
