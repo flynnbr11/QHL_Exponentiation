@@ -6,8 +6,9 @@ typedef __m128d complex_t;
 #define TEST_MUL 0
 #define TEST_ADD_HERM 0
 #define TEST_EXP 1
+#define TEST_MUL_SUM 0
 
-#define TEST_MTX 1
+#define TEST_MTX 2
 
 int main()
 {
@@ -90,7 +91,26 @@ int main()
 
   ComplexMatrix test_mtx(num_rows, max_nnz, nnz_vals, nnz_by_row, nnz_col_locations);
 
-  ComplexMatrix mtx_two(num_rows, max_nnz, nnz_vals, nnz_by_row, nnz_col_locations);
+
+  if(TEST_MTX==2)
+  {
+
+    nnz_by_row[0] = 1;
+    nnz_by_row[1] = 1;    
+    nnz_by_row[2] = 1;
+    nnz_by_row[3] = 1;    
+	  nnz_col_locations[0][0] = 0;
+	  nnz_col_locations[1][0] = 1;
+	  nnz_col_locations[2][0] = 2;
+	  nnz_col_locations[3][0] = 3;
+    nnz_vals[0][0] = to_complex(0.52, -0.08);
+    nnz_vals[1][0] = to_complex(0.52, 0.08);
+    nnz_vals[2][0] = to_complex(0.52, -0.08);
+    nnz_vals[3][0] = to_complex(0.52, 0.08);
+
+  }
+
+  ComplexMatrix mtx_two(num_rows, max_nnz, nnz_vals, nnz_by_row,    nnz_col_locations);
 
   ComplexMatrix dst(num_rows, num_rows);
   
@@ -105,6 +125,8 @@ int main()
     printf("\n\n");
     mtx_two.add_complex_scaled_hermitian_sparse(test_mtx, one);    
 
+    mtx_two.add_complex_scaled_hermitian_sparse(test_mtx, one);    
+
     printf("\n \n \nSUM: \n");
     mtx_two.print_compressed_storage_full();
   }
@@ -112,17 +134,56 @@ int main()
   
   if(TEST_MUL)
   {
+    uint32_t max_mul = 4;
     test_mtx.sparse_hermitian_mult(mtx_two, dst);
+    for(uint32_t i=0; i<max_mul; i++)
+    {
+    mtx_two.swap_matrices(dst);
+    test_mtx.sparse_hermitian_mult(mtx_two, dst);
+    printf("i=%u \t prod: \n", i);
+    dst.print_compressed_storage_full();     
+    }
 
     printf("\n \n \nLHS: \n");
     test_mtx.print_compressed_storage_full();
 
-    printf("\n \n \nRHS: \n");
-    mtx_two.print_compressed_storage_full();
+//    printf("\n \n \nRHS: \n");
+  //  mtx_two.print_compressed_storage_full();
 
     printf("\n \n \nProduct: \n");
     dst.print_compressed_storage_full();
-  }  
+  } 
+
+  if(TEST_MUL_SUM)
+  {
+    int max_mult = 4;
+    for(int i=0; i<max_mult; i++)
+    {
+      printf("[test_mul_sum i=%d] before mult, LHS:\n",i);
+      test_mtx.print_compressed_storage_full();
+      printf("[test_mul_sum i=%d] before mult, RHS:\n",i);
+      mtx_two.print_compressed_storage_full();
+
+
+      test_mtx.sparse_hermitian_mult(mtx_two, dst);
+      printf("[test_mul_sum i=%d] after mult, DST: \n",i);
+      dst.print_compressed_storage_full();
+
+      printf("[test_mul_sum i=%d] before add, LHS:\n",i);
+      test_mtx.print_compressed_storage_full();
+      printf("[test_mul_sum i=%d] before add, RHS (DST):\n",i);
+      dst.print_compressed_storage_full();
+
+
+      test_mtx.add_complex_scaled_hermitian_sparse(dst, one);
+      printf("[test_mul_sum i=%d] after addition, THIS: \n",i);
+      test_mtx.print_compressed_storage_full();
+    }
+    printf("After multiplying and adding, OUTPUT: \n");
+    test_mtx.print_compressed_storage_full();
+  }
+
+ 
   if(TEST_EXP)
   {
     ComplexMatrix sparse_dst(num_rows, num_rows); 

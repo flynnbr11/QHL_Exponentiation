@@ -429,8 +429,8 @@ for(uint32_t l=k; l < max_nnz_in_a_row; l++)
       
       
       // TODO: fill nonzero vals and locs with tmp vals/locs.
-      printf("[reallocate] After reallocation, THIS:\n");
-      print_compressed_storage();
+      if(print_reallocate) printf("[reallocate] After reallocation, THIS:\n");
+      if(print_reallocate) print_compressed_storage();
       
     }
 
