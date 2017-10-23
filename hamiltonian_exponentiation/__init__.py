@@ -67,6 +67,20 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
           print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Custom.")
         return dst
 
+
+def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 25, print_method=False, trotterize_by=1.0):
+  import numpy as np
+  import libmatrix_utils as libmu
+  max_element = np.max(np.abs(src))
+  new_src = src/max_element
+  scalar = max_element * t
+
+  dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+  inf_reached = libmu.exp_pm_ham_sparse(src, dst, plus_or_minus, scalar, precision)
+  print("Inf = ", inf_reached)    
+
+
+
 def random_hamiltonian(number_qubits):
   """
   Generate a random Hamiltonian - will be square with length/width= 2**number_qubits.
