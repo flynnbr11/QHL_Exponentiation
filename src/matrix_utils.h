@@ -104,7 +104,18 @@ public:
         if(COMPRESS) compress_matrix_storage();
     }
 
-    ComplexMatrix(uint32_t rows, uint32_t max_nnz, complex_t** nnz_vals, uint32_t* nnz_by_row, uint32_t** nnz_col_locations)
+/*
+    ComplexMatrix(uint32_t rows, uint32_t max_nnz, uint32_t* nnz_by_row,  complex_t** nnz_vals, uint32_t** nnz_col_locations)
+    : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
+    {
+      num_rows = rows; 
+      num_cols = rows;
+      printf("Constructor\n");
+      reallocate(max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
+    }
+//*/
+    //*
+    ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row, complex_t** nnz_vals,  uint32_t** nnz_col_locations)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
     {
       printf("Matrix constructor for sparse matrix. \n");
@@ -134,6 +145,7 @@ public:
 			}
 //      print_compressed_storage();
     }
+ //   */
   
     ~ComplexMatrix()
     {
