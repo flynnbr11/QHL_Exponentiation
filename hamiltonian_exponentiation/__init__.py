@@ -75,10 +75,36 @@ def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff 
   new_src = src/max_element
   scalar = max_element * t
 
+
+  max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(src)
   dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+#  inf_reached = libmu.exp_pm_ham_sparse(nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, dst, plus_or_minus, scalar, precision)
   inf_reached = libmu.exp_pm_ham_sparse(src, dst, plus_or_minus, scalar, precision)
+  
   print("Inf = ", inf_reached)    
 
+
+def matrix_preprocessing(ham): 
+    import scipy
+    from scipy.sparse import csr_matrix
+    import numpy as np
+    sp_ham = scipy.sparse.csr_matrix(ham)
+    num_rows = np.shape(ham)[0]
+    num_nnz_by_row = sp_ham.getnnz(1)
+    max_nnz_in_any_row = max(num_nnz_by_row)
+    nnz_vals = np.zeros((num_rows, max_nnz_in_any_row), dtype=np.complex128)
+    nnz_col_locations = np.zeros((num_rows, max_nnz_in_any_row), dtype=int)
+    data = sp_ham.data
+    col_locations = sp_ham.indices
+
+    k=0
+    for i in range(num_rows):
+        for j in range(num_nnz_by_row[i]):
+            nnz_vals[i][j] = data[k]
+            nnz_col_locations[i][j] = col_locations[k]
+            k+=1
+
+    return max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals 
 
 
 def random_hamiltonian(number_qubits):

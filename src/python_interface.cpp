@@ -132,7 +132,7 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
 
 
 static PyMethodDef matrix_utils_methods[] = {
-      {"exp_pm_ham_sparse",       Exp_iHt_sparse, METH_VARARGS, "Use sparse functionality to exponentiate a Hamiltonian."},
+      {"exp_pm_ham_sparse",       Exp_iHt_sparse,      METH_VARARGS, "Use sparse functionality to exponentiate a Hamiltonian."},
 	  	{"exp_pm_ham", 					    Exp_iHt,              METH_VARARGS, "Exponentiate {iHt} where H is input Hamiltonian, t is time given."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
