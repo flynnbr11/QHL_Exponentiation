@@ -17,6 +17,13 @@ typedef __m128d scalar_t;
 typedef __m128d complex_t;
 #define TOLERANCE 1e-52
 
+/*
+* for installing on mac
+#ifndef __clang__
+# include <malloc.h>
+#endif
+*/
+
 #define VERBOSE_H 0
 #define COMPRESS 1
 

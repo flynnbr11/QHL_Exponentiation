@@ -60,6 +60,26 @@ if python_version == 2:
 		  
 		  
 elif python_version == 3: 
+# create a function to find out what compiler to use based on platform
+### detect platform
+### find equiavelent compiler flags for clang/msvc... 
+##### find compiler, determine appropriate flags
+### get python from sysconfig -- don't include link flags for python
+
+## import sysconfig
+## get_platform()
+## get_config_var("CFLAGS")
+## get_paths()
+## get_config_var("CC") to get compiler --- look up compiler flags based on that
+## if (gcc) set extra compile args as below 
+## else if (msvc)... 
+
+
+## or: using distutils
+##  compiler = dist.ccompiler.new_compiler() # handle around compiler that's being used
+## 
+
+
 	from setuptools import setup, Extension
 
 	libmatrix_utils = Extension("libmatrix_utils",
@@ -67,9 +87,10 @@ elif python_version == 3:
                  "./src/matrix_utils.cpp", 
                  "./src/python_interface.cpp", 
                 ], 
-                extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11", "-I/usr/include/python3.5"],
-                extra_link_args=["-lm", "-lstdc++", "-lpython3.5m"],
+                extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11"],
+                extra_link_args=["-lm", "-lstdc++"],
                 include_dirs=["src/", "/usr/include/python3.5", numpy.get_include()]
+#                include_dirs=["src/", sysconfig.get_paths()["include"], numpy.get_include()]
                 )
 
 
