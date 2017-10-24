@@ -56,6 +56,22 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 }
 
 
+static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
+{
+    std::string result_str;
+    double precision = 0.0f;
+    double scale = 0.0f;
+    double plus_or_minus = 0.0f;
+    PyArrayObject* src_matrix;
+    PyArrayObject* dst_matrix;
+    printf("Inside exp iHt sparse function \n");
+    bool exp_reached_inf = 0;
+    return Py_BuildValue("b", exp_reached_inf);
+}
+
+
+
+
 static PyObject* Exp_iHt(PyObject *self, PyObject *args)
 {
     std::string result_str;
@@ -116,6 +132,7 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
 
 
 static PyMethodDef matrix_utils_methods[] = {
+      {"exp_pm_ham_sparse",       Exp_iHt_sparse, METH_VARARGS, "Use sparse functionality to exponentiate a Hamiltonian."},
 	  	{"exp_pm_ham", 					    Exp_iHt,              METH_VARARGS, "Exponentiate {iHt} where H is input Hamiltonian, t is time given."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
