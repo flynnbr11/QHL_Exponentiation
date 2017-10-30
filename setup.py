@@ -3,8 +3,8 @@ import time
 import sys
 import sysconfig
 
-from setuptools import setup, Extension
-
+#from setuptools import setup, Extension
+from distutils.core import setup, Extension
 """
 Note: on OSX you must do this:
 

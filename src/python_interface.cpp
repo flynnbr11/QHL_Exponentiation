@@ -58,12 +58,22 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
+
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
     double plus_or_minus = 0.0f;
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
+
+//  libmu.exp_pm_ham_sparse(nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, dst, plus_or_minus, scalar, precision)
+
+    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
+    {
+        fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
+        return NULL;
+    }
+
     printf("Inside exp iHt sparse function \n");
     bool exp_reached_inf = 0;
     return Py_BuildValue("b", exp_reached_inf);
@@ -81,6 +91,7 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
+    // libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision)
     if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
     {
         fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
@@ -143,7 +154,7 @@ static PyObject *theError;
 PyMODINIT_FUNC initlibmatrix_utils(void)
 {
 	int python_version = PY_MAJOR_VERSION;
-	printf("\n \n \n \n \n Python version : %d \n \n \n \n \n ", python_version);
+	//printf("\n \n \n \n \n Python version : %d \n \n \n \n \n ", python_version);
 
     PyObject *m;
 
