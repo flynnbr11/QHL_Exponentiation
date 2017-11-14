@@ -78,10 +78,13 @@ def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff 
 
   max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(src)
   dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
-#  inf_reached = libmu.exp_pm_ham_sparse(nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, dst, plus_or_minus, scalar, precision)
-  inf_reached = libmu.exp_pm_ham_sparse(src, dst, plus_or_minus, scalar, precision)
+  
+  print("going into function, nnz_by_row:\n", num_nnz_by_row)
+  inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
+#  inf_reached = libmu.exp_pm_ham_sparse(src, dst, plus_or_minus, scalar, precision)
   
   print("Inf = ", inf_reached)    
+  return dst
 
 
 def matrix_preprocessing(ham): 

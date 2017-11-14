@@ -58,21 +58,120 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
+    printf("TEST 1\n");
 
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
     double plus_or_minus = 0.0f;
-    PyArrayObject* src_matrix;
+    double max_nnz_in_any_row = 0.0f;
+    PyArrayObject* nnz_vals_p;
+    PyArrayObject* nnz_col_locations_p;
+    PyArrayObject* num_nnz_by_row_p;
     PyArrayObject* dst_matrix;
 
-//  libmu.exp_pm_ham_sparse(nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, dst, plus_or_minus, scalar, precision)
+//  libmu.exp_pm_ham_sparse(dst, nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
 
-    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
+//    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
+
+
+     if (!PyArg_ParseTuple(args, "O!O!O!O!dddd",  &PyArray_Type, &dst_matrix, &PyArray_Type, &nnz_vals_p, &PyArray_Type, &nnz_col_locations_p, &PyArray_Type, &num_nnz_by_row_p, &max_nnz_in_any_row , &plus_or_minus, &scale, &precision))
     {
-        fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
+        fprintf(stderr, "Error: Sparse function arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
+
+    size_t dst_rows = (size_t)PyArray_DIM(dst_matrix, 0);
+    size_t dst_cols = (size_t)PyArray_DIM(dst_matrix, 1);
+
+
+    uint32_t max_nnz = (uint32_t) max_nnz_in_any_row;
+    uint32_t num_rows = (uint32_t) dst_rows;
+
+    uint32_t* nnz_by_row = (uint32_t*)PyArray_DATA(num_nnz_by_row_p);;
+//    uint32_t** nnz_col_locations = (uint32_t**)PyArray_DATA(nnz_col_locations_p);;
+ //   complex_t** nnz_vals = (complex_t**)PyArray_DATA(nnz_vals_p);;
+
+
+    printf("max nnz in any row: %u \n", max_nnz);
+
+/*
+    uint32_t* nnz_by_row;
+    uint32_t** nnz_col_locations;
+    complex_t** nnz_vals;
+
+    uint32_t num_nnz;	
+
+    nnz_vals = new complex_t*[num_nnz];
+    nnz_by_row = new uint32_t[num_rows];
+    nnz_col_locations = new uint32_t*[num_rows];
+    
+    for(uint32_t i=0; i<num_rows; i++)
+    {
+      nnz_vals[i] = new complex_t[max_nnz];
+      nnz_col_locations[i] = new uint32_t[max_nnz];
+    }
+
+    for (uint32_t i=0; i<num_rows; i++)
+    {
+      nnz_by_row[i] = (uint32_t) num_nnz_by_row_p[i];
+      for(uint32_t j=0; j<nnz_by_row[i]; j++)
+      {
+      	nnz_col_locations[i][j] = (uint32_t) nnz_col_locations_p[i][j];
+        nnz_vals[i][j] = (complex_t) nnz_vals_p[i][j];
+      }
+    }
+
+//*/
+
+    complex_t* tmp_nnz_vals = (complex_t*)PyArray_DATA(nnz_vals_p);
+    uint32_t* tmp_col = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
+
+    uint32_t** nnz_col_locations;
+    complex_t** nnz_vals;
+    nnz_vals = new complex_t*[num_rows];
+    nnz_col_locations = new uint32_t*[num_rows];
+    for(uint32_t i=0; i<num_rows; i++)
+    {
+      nnz_vals[i] = new complex_t[max_nnz];
+      nnz_col_locations[i] = new uint32_t[max_nnz];
+    }
+
+/* TODO this logic isn't quite right */
+    for (uint32_t i=0; i<num_rows; i++)
+    {
+      for(uint32_t j=0; j<nnz_by_row[i]; j++)
+//      for(uint32_t j=0; j<max_nnz; j++)
+      {
+      	nnz_col_locations[i][j] =  tmp_col[i*max_nnz + j];
+        nnz_vals[i][j] = tmp_nnz_vals[i*max_nnz+j];
+      }
+    }
+
+
+    bool plus_minus_flag = false; // if flag is false, e^{-iHt}; if flag is true, e^{iHt}
+    if (plus_or_minus == 1.0) 
+    {
+      plus_minus_flag = true;
+    } // else plus_minus_flag=false
+
+    printf("dst rows and cols %u %u \n", dst_rows, dst_cols);
+    ComplexMatrix dst(dst_rows, dst_cols);
+
+    dst.make_zero();
+
+
+//  ComplexMatrix test_mtx(num_rows, max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
+//  test_mtx.print_compressed_storage_full();
+
+    printf("Inside python interface : \n");
+    printf("max nnz  : %u \n", max_nnz);
+    printf("nnz_by_row : %u \n", nnz_by_row[0]);
+    printf("col loc : %u \n", nnz_col_locations[0][0]);
+    printf("nnz %u \n", get_real(nnz_vals[0][0]));
+    
+    ComplexMatrix hamiltonian(num_rows, max_nnz, nnz_by_row, nnz_col_locations, nnz_vals);
+    hamiltonian.print_compressed_storage_full();
 
     printf("Inside exp iHt sparse function \n");
     bool exp_reached_inf = 0;

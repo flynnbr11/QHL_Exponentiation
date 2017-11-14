@@ -122,7 +122,7 @@ public:
     }
 //*/
     //*
-    ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row, complex_t** nnz_vals,  uint32_t** nnz_col_locations)
+    ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row,   uint32_t** nnz_col_locations, complex_t** nnz_vals)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
     {
       printf("Matrix constructor for sparse matrix. \n");
@@ -143,7 +143,6 @@ public:
 			for(uint32_t i=0; i<num_rows; i++)
 			{
 			  num_nonzeros_by_row[i] = nnz_by_row[i];
-			  
         for(uint32_t j=0; j<max_nnz; j++)
         {
           nonzero_col_locations[i][j] = nnz_col_locations[i][j];
@@ -151,6 +150,8 @@ public:
         }
 			}
 //      print_compressed_storage();
+
+      printf("matrix construction complete \n");
     }
  //   */
   
