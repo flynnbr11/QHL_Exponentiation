@@ -88,6 +88,10 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     uint32_t max_nnz = (uint32_t) max_nnz_in_any_row;
     uint32_t num_rows = (uint32_t) dst_rows;
 
+    printf("Inside python interface : \n");
+    printf("max nnz  : %u \n", max_nnz);
+
+
     uint32_t* nnz_by_row = (uint32_t*)PyArray_DATA(num_nnz_by_row_p);;
 //    uint32_t** nnz_col_locations = (uint32_t**)PyArray_DATA(nnz_col_locations_p);;
  //   complex_t** nnz_vals = (complex_t**)PyArray_DATA(nnz_vals_p);;
@@ -127,6 +131,20 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     complex_t* tmp_nnz_vals = (complex_t*)PyArray_DATA(nnz_vals_p);
     uint32_t* tmp_col = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
 
+    uint32_t col_rows = (uint32_t)PyArray_DIM(nnz_col_locations_p, 0);
+    uint32_t cols_cols = (uint32_t)PyArray_DIM(nnz_col_locations_p, 1);
+
+    uint32_t* tst_array = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
+    complex_t* tst_nnz_array = (complex_t*)PyArray_DATA(nnz_vals_p);
+
+    for(uint32_t i=0; i<2*col_rows*cols_cols; i++)
+    {
+      printf("i=%u col loc %u \n", i, tst_array[i]);
+      //printf("i=%u val %.2e + %.2e i \n", i, get_real(tst_nnz_array[i]), get_imag(tst_nnz_array[i]) );
+    }
+
+    //printf("col array rows %u cols %u \n", col_rows, cols_cols); 
+    
     uint32_t** nnz_col_locations;
     complex_t** nnz_vals;
     nnz_vals = new complex_t*[num_rows];
@@ -140,10 +158,14 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 /* TODO this logic isn't quite right */
     for (uint32_t i=0; i<num_rows; i++)
     {
-      for(uint32_t j=0; j<nnz_by_row[i]; j++)
-//      for(uint32_t j=0; j<max_nnz; j++)
+
+      printf("i=%u num nnz in row: %u \n", i, nnz_by_row[i]);
+//      for(uint32_t j=0; j<nnz_by_row[i]; j++)
+      for(uint32_t j=0; j<max_nnz; j++)
       {
-      	nnz_col_locations[i][j] =  tmp_col[i*max_nnz + j];
+        //printf("(i,j) = (%u, %u), col = %u \n", i,j,tmp_col[i*max_nnz + j]);
+        //printf("(i,j) = (%u, %u), val = %.2e + %.2e i \n", i,j, get_real(tmp_nnz_vals[i*max_nnz + j]), get_imag(tmp_nnz_vals[i*max_nnz+j]));
+      	nnz_col_locations[i][j] = tmp_col[2*(i*max_nnz+j)];
         nnz_vals[i][j] = tmp_nnz_vals[i*max_nnz+j];
       }
     }
@@ -164,17 +186,14 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 //  ComplexMatrix test_mtx(num_rows, max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
 //  test_mtx.print_compressed_storage_full();
 
-    printf("Inside python interface : \n");
-    printf("max nnz  : %u \n", max_nnz);
-    printf("nnz_by_row : %u \n", nnz_by_row[0]);
-    printf("col loc : %u \n", nnz_col_locations[0][0]);
-    printf("nnz %u \n", get_real(nnz_vals[0][0]));
     
     ComplexMatrix hamiltonian(num_rows, max_nnz, nnz_by_row, nnz_col_locations, nnz_vals);
     hamiltonian.print_compressed_storage_full();
 
     printf("Inside exp iHt sparse function \n");
     bool exp_reached_inf = 0;
+    exp_reached_inf = hamiltonian.exp_ham_sparse(dst, scale, precision, plus_minus_flag);
+    
     return Py_BuildValue("b", exp_reached_inf);
 }
 
