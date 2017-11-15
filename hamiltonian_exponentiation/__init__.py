@@ -33,12 +33,15 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
     max_element = np.max(np.abs(src))
     new_src = src/max_element
     scalar = max_element * t
+    if(print_method):
+        print("scalar = ", scalar, " \t cutoff = ", scalar_cutoff)
     if(scalar > scalar_cutoff):
+
       import scipy
       from scipy import linalg
       if(print_method):
         print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (scalar).")
-      if(np.shape(src)[0] > 20000): # Large matrices -- worth using sparse.linalg
+      if(np.shape(src)[0] > 63): # Large matrices -- worth using sparse.linalg
         from scipy import sparse
         from scipy.sparse import linalg
         from scipy.sparse import csc_matrix
@@ -49,6 +52,8 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
     else:
       dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
       inf_reached = libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision) # Call to C++ custom exponentiation function
+      if(print_method):
+        print("inf reached = ", inf_reached)
       if(inf_reached):
         import scipy
         from scipy import linalg
@@ -68,21 +73,50 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
         return dst
 
 
-def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 25, print_method=False, trotterize_by=1.0):
+def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 20, print_method=False, trotterize_by=1.0):
   import numpy as np
   import libmatrix_utils as libmu
   max_element = np.max(np.abs(src))
   new_src = src/max_element
   scalar = max_element * t
 
-
-  max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(new_src)
-  dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+  if(scalar > scalar_cutoff):
+    import scipy
+    from scipy import linalg
+    if(print_method):
+      print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (scalar).")
+    if(np.shape(src)[0] > 63): # Large matrices -- worth using sparse.linalg
+      from scipy import sparse
+      from scipy.sparse import linalg
+      from scipy.sparse import csc_matrix
+      expd_mtx = scipy.sparse.linalg.expm(scipy.sparse.csc_matrix(plus_or_minus*1.j*src*t))      
+    else: 
+      expd_mtx = scipy.linalg.expm(plus_or_minus*1.j*src*t)
+    return expd_mtx
+  else: 
+    max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(new_src)
+    dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+    
+    inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
   
-  inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
-#  inf_reached = libmu.exp_pm_ham_sparse(src, dst, plus_or_minus, scalar, precision)
-  
-  return dst
+   
+    if(inf_reached):
+      import scipy
+      from scipy import linalg
+      if(np.shape(src)[0] > 63): # Large matrices -- worth using sparse.linalg
+        from scipy import sparse
+        from scipy.sparse import linalg
+        from scipy.sparse import csc_matrix
+        expd_mtx = scipy.sparse.linalg.expm(scipy.sparse.csc_matrix(plus_or_minus*1.j*src*t))      
+      else: 
+        expd_mtx = scipy.linalg.expm(plus_or_minus*1.j*src*t)
+        if(print_method):
+          print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (inf).")
+      return expd_mtx
+    else:
+      if(print_method):
+        print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Custom.")
+      return dst
 
 
 def matrix_preprocessing(ham): 

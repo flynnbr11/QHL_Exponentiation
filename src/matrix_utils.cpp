@@ -115,13 +115,6 @@ void ComplexMatrix::print_compressed_storage_full() const
 void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst)
 {
     bool print_mult = false;
-    if(PRINT_MATRICES_MULT)
-    {
-      printf("[Sparse Mult] LHS: \n");
-      this->print_compressed_storage_full();
-      printf("[Sparse Mult] RHS: \n");
-      rhs.print_compressed_storage_full();
-    }
      
     // Multiplication of one sparse Hermitian matrix by another. 
     size_t size = this->num_rows;
@@ -129,13 +122,8 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     complex_t conj = to_complex(1.0, -1.0);
     if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     uint32_t num_rows = this->num_rows;
-    if(print_mult) printf("[mult %d] num rows = %u \n", __LINE__, num_rows);
-		//dst.make_zero();
     uint32_t num_elements = num_rows*num_rows;
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     
-    /* TODO: make all arrays here pointers to avoid stack overflow */
-//  complex_t nonzero_values[num_elements];
 		complex_t* nonzero_values;
 		nonzero_values = new complex_t[num_elements];
 		
@@ -149,78 +137,37 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     uint32_t total_num_nnz = 0;    
 		uint32_t* temp_nnz_by_row;
 		temp_nnz_by_row = new uint32_t[num_rows];
-		
-		/*
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-    uint32_t rows[num_elements];
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-    uint32_t cols[num_elements];
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-    
-    uint32_t row_full_upto[num_rows];
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-    uint32_t k = 0;
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-    uint32_t total_num_nnz = 0;    
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-  
-    uint32_t temp_nnz_by_row[num_rows];
-    */
-    
-    
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
+    /* TODO: release memory -- memory leak risk*/    
 
     for(uint32_t i=0; i<num_rows; i++)
     {
       temp_nnz_by_row[i] = 0;
     }
     
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-
     for (uint32_t row = 0; row < size; ++row)
     {
-      if(print_mult) printf("[mult %d] row %d \n", __LINE__, row);
 			if(this->num_nonzeros_by_row[row] != 0)
 			{
-//				complex_t* dst_row = dst.get_row(row);
 				for (uint32_t col = row; col<size; ++col)
 				{
-          if(print_mult) printf("[mult %d] col %d \n", __LINE__, col);
 					if (rhs.num_nonzeros_by_row[col] != 0) 
 					{
 						complex_t accum = zero;
-			  	  if(print_mult) printf("[mult %d] row %u col %u accum: %.2e + %.2e i \n", __LINE__, row, col, get_real(accum), get_imag(accum));	
 						for (uint32_t j = 0; j < this -> max_nnz_in_a_row; j++)
 						{
 							uint32_t col_loc = this->nonzero_col_locations[row][j];
 
-  					  if(print_mult) printf("[mult %d] row %u col_loc %u \n", __LINE__, row, col_loc);
 							if(col_loc != num_cols)
 							{
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 								for (uint32_t k=0; k < rhs.max_nnz_in_a_row; k++)
 								{
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 									if (col_loc == rhs.nonzero_col_locations[col][k])
 									{
-										if(print_mult) printf("[mult %d] Match k=%u \t col_loc=%u \n", __LINE__, k, col_loc);
                     complex_t this_val = this->nonzero_values[row][j];
                     complex_t rhs_val = (rhs.nonzero_values[col][k]) *conj;
-										if(print_mult) printf("[mult %d] \n\taccum = %.2e + %.2e i \n\tthis val  = %.2e + %.2e i \n\trhs val   = %.2e + %.2e i \n", __LINE__, get_real(accum), get_imag(accum), get_real(this_val), get_imag(this_val), get_real(rhs_val), get_imag(rhs_val));
 										complex_t product = mul(this_val, rhs_val);
-										if(print_mult) printf("[mult %d] product = %.2e + %.2e i \n", __LINE__, get_real(product), get_imag(product));
-										
-										
                     accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj));										
-/*
-										if(row!=rhs.nonzero_col_locations[col][k]) accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj ));					
-
-
-										else accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k] ));					
-//*/
-
-									  if(print_mult) printf("[mult %d] row %u col_loc  %u \t Accum now %.2e + %.2e i \n", __LINE__,row, col_loc, get_real(accum), get_imag(accum));
 									}					
 								}
 							}
@@ -228,7 +175,6 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
 
             if(get_real(accum)!=0.0 || get_imag(accum)!=0.0)
             {
-              if(print_mult) printf("[mult %d] Accum nonzero. Row %u Col %u Val %.2e + %.2e i \n", __LINE__, row, col, get_real(accum), get_imag(accum));
               nonzero_values[k] = accum;
               rows[k] = row;
               cols[k] = col;
@@ -236,11 +182,9 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
 
               k++;
               total_num_nnz ++;
-if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
               if(row!=col)
               {
-                if(print_mult) printf("[mult %d] Accum nonzero; row!=col. Row %u Col %u Val %.2e + %.2e i \n", __LINE__, col, row, get_real(accum), get_imag(accum*conj));
                 nonzero_values[k] = accum * conj;
                 rows[k] = col;
                 cols[k] = row;  
@@ -248,21 +192,14 @@ if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
                 total_num_nnz ++;
                 temp_nnz_by_row[col]++;
               }
-if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-              
             }
-            
-//						dst_row[col] = accum;
-//						dst[col][row] = (accum*conj); 
 
 					}
 				}
 			}
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 			 
 	  } // end for (row) loop
 
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     uint32_t max_nnz = 0;
     for(uint32_t a=0; a<num_rows; a++)
@@ -272,15 +209,11 @@ if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
         max_nnz = temp_nnz_by_row[a];
       }
     }
-    if(print_mult) printf("[mult %d] Max NNZ = %u \n", __LINE__, max_nnz);
     for(uint32_t i=0; i<num_rows;i++)
     {
       row_full_upto[i] = 0;
     }
   
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-
-
     uint32_t* tmp_nnz_by_row;
     tmp_nnz_by_row = new uint32_t[num_rows];
     
@@ -288,19 +221,16 @@ if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     tmp_nnz_vals = new complex_t*[num_rows];
     uint32_t** tmp_nnz_col_locs;
     tmp_nnz_col_locs = new uint32_t*[num_rows];
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     
     for(uint32_t i=0; i<num_rows; i++)
     {
       tmp_nnz_vals[i] = new complex_t[max_nnz];
       tmp_nnz_col_locs[i] = new uint32_t[max_nnz];
     }
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     
     uint32_t a = 0;
     for(uint32_t k=0; k<total_num_nnz; k++)
     {
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     
       uint32_t row = rows[k];
       uint32_t col = cols[k];
@@ -311,12 +241,7 @@ if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
       tmp_nnz_col_locs[row][a] = col;
       row_full_upto[row]++;
     }
-    /*
-    for(uint32_t i=0; i<num_rows; i++)
-    {
-      for(uint32_t j=tmp_nnz_by_row[i]; j< 
-    }
-    */
+
     uint32_t tmp_max_nnz = 0;
     for(uint32_t i=0; i<num_rows; i++)
     {
@@ -326,26 +251,18 @@ if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
         tmp_max_nnz = tmp_nnz_by_row[i];
       }
     }
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
-    if(print_mult) printf("[mult %d] \n\t tmp_max_nnz = %u \n\t Tmp Values: \n", __LINE__, tmp_max_nnz);
     for(uint32_t i=0; i<num_rows; i++)
     {     
-      if(print_mult) printf("[mult %d] Row %u has %u nnz vals \n", __LINE__, i, tmp_nnz_by_row[i]);
       for(uint32_t j=0; j<tmp_max_nnz; j++)
       {
         complex_t val = tmp_nnz_vals[i][j];
         uint32_t col = tmp_nnz_col_locs[i][j];
-        if(print_mult) printf("[mult %d] Col loc: %u \t val: %.2e+%.2ei \n", __LINE__, col, get_real(val), get_imag(val));
       }
       
     }
 
-    if(print_mult) printf("[mult %d] New max_nnz going into reallocate fnc = %u \n", __LINE__, tmp_max_nnz);
-
     dst.reallocate(tmp_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);    
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-
 }
 
 
@@ -938,20 +855,38 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
     
 }
 
-// TODO separate fnc: sparse_exp_ham
+
+
+
+
 bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const
 {
-    uint32_t k_max = 34;
     /* To avoid extra copying, we alternate power accumulation matrices */
-    if(PRINT_LINE_DEBUG) printf("In exp ham: \n");
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
-
     double scalar_by_time = scale;
+
 		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
+    bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
+
     double norm_scalar;
     bool do_print = false;
 
+		ComplexMatrix rescaled_mtx(num_rows, num_cols);
 
+		/* Rescale so that all matrix elements <= 1 */
+
+    /*
+	  norm_scalar = this -> get_max_element_magnitude();
+	  scalar_t scale = to_scalar(1.0/norm_scalar);
+		rescaled_mtx.make_zero();
+		rescaled_mtx.add_scaled_hermitian(*this, scale);
+		rescaled_mtx.compress_matrix_storage();
+    
+    scalar_t one = to_scalar(1.0);
+		rescaled_mtx.make_zero();
+		rescaled_mtx.add_scaled_hermitian(*this, one);
+		rescaled_mtx.compress_matrix_storage();
+    */
+    
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
@@ -959,13 +894,11 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
     ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
 
     dst.make_zero();
-//    dst.make_identity();
 
     double k_fact = 1.0;
 		double scale_time_over_k_factorial = 1.0;
 		// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     for (uint32_t k = 0; !done; ++k)
     {
@@ -975,6 +908,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 						scale_time_over_k_factorial *= scalar_by_time/k;
 				}
 				
+//        if (scale_time_over_k_factorial * current_max_element >= precision)
         if (scale_time_over_k_factorial >= precision)
         { 
         /* 
@@ -991,14 +925,14 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
         
             uint32_t alternate = k & 1;
             ComplexMatrix& new_pa = *pa[alternate];
-            ComplexMatrix& old_pa = *pa[1 - alternate];          
-
+            ComplexMatrix& old_pa = *pa[1 - alternate];
             if (k > 0)
             {
                 new_pa.compress_matrix_storage();
                 old_pa.compress_matrix_storage();
 									
                 old_pa.mul_herm_for_e_minus_i(*this, new_pa);                
+                //current_max_element = new_pa.get_max_element_magnitude();
 						}	
 						
             complex_t one_over_k_factorial_simd;
@@ -1057,28 +991,14 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             	done = true;
             	infinite_val = true;
             }
-            else if (scale_time_over_k_factorial < precision | k>k_max)
+            else if (scale_time_over_k_factorial < precision)
             {
             	done = true;
             }
             
             else
             { /* only add to destination matrix if not yet at inf */
-              /*
-              printf("[FULL exp addition k= %u]  adding new_pa by scalar %.2e + %.2e: \n",k, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
-              new_pa.debug_print();
-              printf("[FULL  exp addition k= %u] adding to previous dst: \n",k);
-              dst.debug_print();
-		          //*/
-		          
-		          
-		          
 		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
-		          
-		          /*
-              printf("[FULL exp addition k= %u] After addition, dst: \n",k);
-              dst.debug_print();
-		          //*/
             }
             
         }
@@ -1087,11 +1007,15 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             done = true;
         }
     }
-    dst.compress_matrix_storage();
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     return infinite_val;
 }
+
+
+
+
+
+
 
 
 void ComplexMatrix::debug_print() const
