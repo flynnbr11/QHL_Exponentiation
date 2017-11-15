@@ -125,7 +125,6 @@ public:
     ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row,   uint32_t** nnz_col_locations, complex_t** nnz_vals)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
     {
-      printf("Matrix constructor for sparse matrix. \n");
       num_cols=num_rows;
       num_values = num_rows * num_cols;
 			max_nnz_in_a_row = max_nnz;
@@ -151,7 +150,6 @@ public:
 			}
 //      print_compressed_storage();
 
-      printf("matrix construction complete \n");
     }
  //   */
   
@@ -481,13 +479,15 @@ for(uint32_t l=k; l < max_nnz_in_a_row; l++)
 		void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
 		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
-		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
+//		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
+
+    bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const;
     void debug_print() const;
     void print_compressed_storage_full() const;
     void print_compressed_storage() const;
     void swap_matrices(ComplexMatrix& other);
     void steal_values(const ComplexMatrix& other);
-
+    void decompress(complex_t* dst_ptr);
 
     uint32_t max_nnz_in_a_row;
 		uint32_t *num_nonzeros_by_row;

@@ -58,8 +58,6 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
-    printf("TEST 1\n");
-
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
@@ -88,16 +86,12 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     uint32_t max_nnz = (uint32_t) max_nnz_in_any_row;
     uint32_t num_rows = (uint32_t) dst_rows;
 
-    printf("Inside python interface : \n");
-    printf("max nnz  : %u \n", max_nnz);
 
 
     uint32_t* nnz_by_row = (uint32_t*)PyArray_DATA(num_nnz_by_row_p);;
 //    uint32_t** nnz_col_locations = (uint32_t**)PyArray_DATA(nnz_col_locations_p);;
  //   complex_t** nnz_vals = (complex_t**)PyArray_DATA(nnz_vals_p);;
 
-
-    printf("max nnz in any row: %u \n", max_nnz);
 
 /*
     uint32_t* nnz_by_row;
@@ -137,11 +131,6 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     uint32_t* tst_array = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
     complex_t* tst_nnz_array = (complex_t*)PyArray_DATA(nnz_vals_p);
 
-    for(uint32_t i=0; i<2*col_rows*cols_cols; i++)
-    {
-      printf("i=%u col loc %u \n", i, tst_array[i]);
-      //printf("i=%u val %.2e + %.2e i \n", i, get_real(tst_nnz_array[i]), get_imag(tst_nnz_array[i]) );
-    }
 
     //printf("col array rows %u cols %u \n", col_rows, cols_cols); 
     
@@ -155,11 +144,9 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
       nnz_col_locations[i] = new uint32_t[max_nnz];
     }
 
-/* TODO this logic isn't quite right */
     for (uint32_t i=0; i<num_rows; i++)
     {
 
-      printf("i=%u num nnz in row: %u \n", i, nnz_by_row[i]);
 //      for(uint32_t j=0; j<nnz_by_row[i]; j++)
       for(uint32_t j=0; j<max_nnz; j++)
       {
@@ -177,10 +164,9 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
       plus_minus_flag = true;
     } // else plus_minus_flag=false
 
-    printf("dst rows and cols %u %u \n", dst_rows, dst_cols);
-    ComplexMatrix dst(dst_rows, dst_cols);
+//    ComplexMatrix dst(dst_rows, dst_cols);
 
-    dst.make_zero();
+ //   dst.make_zero();
 
 
 //  ComplexMatrix test_mtx(num_rows, max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
@@ -188,16 +174,28 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 
     
     ComplexMatrix hamiltonian(num_rows, max_nnz, nnz_by_row, nnz_col_locations, nnz_vals);
+    complex_t* dst_ptr = (complex_t*)PyArray_DATA(dst_matrix);
+/*
     hamiltonian.print_compressed_storage_full();
+//    complex_t* dst_ptr;
+ //   dst_ptr = new complex_t[num_rows*num_rows];
 
-    /*
-    TODO: write function which puts sparse storage into 1D array. Make that array *dst_pointer
+
+    printf("about to enter decompress function \n");
+    hamiltonian.decompress(dst_ptr);
+
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
-    */
 
-    printf("Inside exp iHt sparse function \n");
+    for (uint32_t i=0; i<num_rows*num_rows;i++)
+    {
+      printf("i=%u \t val = %.2e + %.2e i \n", i, get_real(dst_ptr[i]), get_imag(dst_ptr[i]));
+    }
+*/
     bool exp_reached_inf = 0;
-    exp_reached_inf = hamiltonian.exp_ham_sparse(dst, scale, precision, plus_minus_flag);
+    //exp_reached_inf = hamiltonian.exp_ham_sparse(dst, scale, precision, plus_minus_flag);
+    
+    exp_reached_inf = hamiltonian.exp_ham_sparse(dst_ptr, scale, precision, plus_minus_flag);
+    
     
     return Py_BuildValue("b", exp_reached_inf);
 }
