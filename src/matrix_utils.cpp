@@ -951,6 +951,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
     double norm_scalar;
     bool do_print = false;
 
+
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();

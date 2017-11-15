@@ -38,7 +38,7 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
       from scipy import linalg
       if(print_method):
         print("Time = ", t, "\t element = ", max_element, "\t Scalar = ", scalar, " \t Linalg (scalar).")
-      if(np.shape(src)[0] > 63): # Large matrices -- worth using sparse.linalg
+      if(np.shape(src)[0] > 20000): # Large matrices -- worth using sparse.linalg
         from scipy import sparse
         from scipy.sparse import linalg
         from scipy.sparse import csc_matrix

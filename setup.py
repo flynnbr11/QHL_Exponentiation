@@ -44,7 +44,7 @@ libmatrix_utils = Extension("libmatrix_utils",
 	             "./src/matrix_utils.cpp", 
 	             "./src/python_interface.cpp", 
 	            ], 
-	            extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O3", "-fPIC", "-std=c++11"],
+	            extra_compile_args=["-march=x86-64", "-mavx", "-msse2", "-g", "-O2", "-O3", "-fPIC", "-std=c++11"],
 	            extra_link_args=["-lm", "-lstdc++"],
 	            include_dirs=["src/", sysconfig.get_paths()["include"], numpy.get_include()]
 	            )
