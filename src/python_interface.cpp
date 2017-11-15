@@ -190,6 +190,11 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     ComplexMatrix hamiltonian(num_rows, max_nnz, nnz_by_row, nnz_col_locations, nnz_vals);
     hamiltonian.print_compressed_storage_full();
 
+    /*
+    TODO: write function which puts sparse storage into 1D array. Make that array *dst_pointer
+    ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
+    */
+
     printf("Inside exp iHt sparse function \n");
     bool exp_reached_inf = 0;
     exp_reached_inf = hamiltonian.exp_ham_sparse(dst, scale, precision, plus_minus_flag);
