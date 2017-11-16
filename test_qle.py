@@ -92,7 +92,7 @@ def eval_loss(
 
 def get_prob(t, op_list, param_list, use_linalg=1):
     #use_linalg=1
-    compare_custom_linalg = True
+    compare_custom_linalg = False
     prec = 1e-25
     
     probe_preiodicity = 50
@@ -110,7 +110,7 @@ def get_prob(t, op_list, param_list, use_linalg=1):
 
     if compare_custom_linalg: 
       linalg = sp.linalg.expm(-1.j*hamiltonian*t)
-      custom = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=True)
+      custom = h.exp_ham_sparse(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=False)
       print("Matrix diff: %.1E mtx" %np.max(np.abs(linalg-custom)))
 
       lin_u_probe = linalg @ probe_ket # perform unitary matrix of hamiltonian on ket form of probe state
@@ -134,7 +134,8 @@ def get_prob(t, op_list, param_list, use_linalg=1):
           mtx = (-1.j)*hamiltonian*t
           unitary_mtx = sp.linalg.expm(mtx)
       else: 
-          unitary_mtx = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=True)
+#          unitary_mtx = h.exp_ham(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=False)
+          unitary_mtx = h.exp_ham_sparse(hamiltonian, t, plus_or_minus=-1.0, precision=prec, scalar_cutoff=exp_scalar_cutoff, print_method=False)
 
       
 #      normalised_probe = np.array([probes[probe_counter%num_probes]])
@@ -324,9 +325,9 @@ print("param list: ", param_list)
 
 
 n_par = np.shape(param_list)[1]
-n_particles=301
-n_experiments=301
-num_tests=3
+n_particles=101
+n_experiments=101
+num_tests=2
 parameter_values=np.empty([n_par, num_tests])
 
 directory = 'qle_plots/test_new_install'

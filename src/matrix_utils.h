@@ -38,7 +38,6 @@ inline double get_scalar_val_0(const scalar_t c) {return ((double*)&c)[0];}
 inline double get_scalar_val_1(const scalar_t c) {return ((double*)&c)[1];}
 
 
-//inline mul_by_i(const complex_t input){return to_complex( -1.0*(get_imag(input), get_real(input));}
 
 inline complex_t complex_conjugate(const complex_t& c) { return to_complex(get_real(c), -get_imag(c)); }
 inline const complex_t add(const complex_t lhs, const complex_t rhs) { return _mm_add_pd(lhs, rhs); }
@@ -111,17 +110,6 @@ public:
         if(COMPRESS) compress_matrix_storage();
     }
 
-/*
-    ComplexMatrix(uint32_t rows, uint32_t max_nnz, uint32_t* nnz_by_row,  complex_t** nnz_vals, uint32_t** nnz_col_locations)
-    : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
-    {
-      num_rows = rows; 
-      num_cols = rows;
-      printf("Constructor\n");
-      reallocate(max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
-    }
-//*/
-    //*
     ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row,   uint32_t** nnz_col_locations, complex_t** nnz_vals)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
     {
@@ -148,10 +136,7 @@ public:
           nonzero_values[i][j] =nnz_vals[i][j];
         }
 			}
-//      print_compressed_storage();
-
     }
- //   */
   
     ~ComplexMatrix()
     {
@@ -180,22 +165,19 @@ public:
         return get_row(row);
     }
 
-		//*
 		uint32_t sum_row(uint32_t row) const
 		{
 			const complex_t* row_vals = get_row(row);
 			uint32_t running_sum = 0; 
 			for(uint32_t i=0; i<num_cols; i++)
 			{
-				if(::mag_sqr(row_vals[i]) > TOLERANCE) // TODO: replace with comparison to complex zero
+				if(::mag_sqr(row_vals[i]) > TOLERANCE) 
 				{
 					running_sum += 1;
 				}
 			}
 			return running_sum;
 		}
-		//*/
-
 
 		double normalise_matrix_by_real_or_imag()
 		{
@@ -248,13 +230,10 @@ public:
 			complex_t val;
 			for(uint32_t i = 0; i < num_rows * num_cols; ++i)
 			{
-//				if(values[i] != zero)
-//				{
 					if(::mag_sqr(values[i]) > abs_matrix_max_val)
 					{
 						abs_matrix_max_val = ::mag_sqr(values[i]);
 					}
-//				}
 			}
 			
 			double sqrt_max = sqrt(abs_matrix_max_val);
@@ -279,9 +258,6 @@ public:
 				}
 			}
 			
-//			double sqrt_max = sqrt(abs_matrix_max_val);
-//			scalar_t one_over_max = to_scalar(1/(sqrt_max));
-		
 			return matrix_max_val;
 		}
 
@@ -318,8 +294,6 @@ public:
 				num_nonzeros_by_row = new uint32_t[num_rows];
     		max_nnz_in_a_row = 0;
 
-				//if(VERBOSE_H) debug_print();
-				
 				for(uint32_t i=0; i<num_rows; i++) // set num_nonzeros_by_row array.
 				{
 					uint32_t this_row_sum = sum_row(i);
@@ -330,7 +304,6 @@ public:
 					}
 				}
 				
-				// after max_nnz_in_a_row is known, can fill other arrays. 
 
 				nonzero_col_locations = new uint32_t*[num_rows];
 				nonzero_values = new complex_t*[num_rows];
@@ -379,17 +352,13 @@ public:
     bool print_reallocate = false;
 		void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
     {
-      if(print_reallocate) printf("[reallocate] Reallocating sparse matrix \n");
-      if(print_reallocate) printf("[reallocate] Max NNZ within reallocate fnc: %u \n", new_max_nnz);
 
       for(uint32_t i=0; i<num_rows; i++)
       {
-        if(print_reallocate) printf("[reallocate - start] Row %u has %u NNZ \n", i, tmp_nnz_by_row[i]);
         for(uint32_t j=0; j<tmp_nnz_by_row[i]; j++)
         {
           complex_t val = tmp_nnz_vals[i][j];
           uint32_t col = tmp_nnz_col_locs[i][j];
-          if(print_reallocate) printf("[reallocate - start] Col %u \t Val %.2e + %.2e i \n", col, get_real(val), get_imag(val));
         }
       }
     
@@ -419,7 +388,6 @@ public:
       {
         complex_t complex_zero = to_complex(0.0, 0.0);
         num_nonzeros_by_row[i] = tmp_nnz_by_row[i];
-        if(print_reallocate) printf("[reallocate - writing] Row %u has %u NNZ \n", i,tmp_nnz_by_row[i]);
         uint32_t nnz_in_this_row = tmp_nnz_by_row[i];;
         for(uint32_t j=0; j<new_max_nnz; j++)
         {
@@ -427,28 +395,14 @@ public:
           {
             nonzero_values[i][j] = tmp_nnz_vals[i][j];
             nonzero_col_locations[i][j] = tmp_nnz_col_locs[i][j];
-            if(print_reallocate) printf("[reallocate - writing] row %u used. Idx %u full \n", i, j);
           }
           else
           {
-            if(print_reallocate) printf("[reallocate - writing] row %u filled. Idx %u empty \n", i, j);
             nonzero_values[i][j] = complex_zero;
             nonzero_col_locations[i][j] = num_cols;
           }
         }
       }
-      /*
-for(uint32_t l=k; l < max_nnz_in_a_row; l++)
-{
-  nonzero_col_locations[i][l] = num_cols; // indicate there is no more non zero elements
-  nonzero_values[i][l] = complex_zero;
-} 		*/
-
-      
-      
-      // TODO: fill nonzero vals and locs with tmp vals/locs.
-      if(print_reallocate) printf("[reallocate] After reallocation, THIS:\n");
-      if(print_reallocate) print_compressed_storage();
       
     }
 

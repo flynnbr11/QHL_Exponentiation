@@ -114,13 +114,11 @@ void ComplexMatrix::print_compressed_storage_full() const
 // dst = this * rhs
 void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst)
 {
-    bool print_mult = false;
      
     // Multiplication of one sparse Hermitian matrix by another. 
     size_t size = this->num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     uint32_t num_rows = this->num_rows;
     uint32_t num_elements = num_rows*num_rows;
     
@@ -265,19 +263,13 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     dst.reallocate(tmp_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);    
 }
 
-
-
-
-
 void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst) // changing const of rhs
 {
 
-    // TODO: take advantage of the fact that these are diagonally semmetrical
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
 
-#if OPT_4
 		dst.make_zero();
     for (uint32_t row = 0; row < size; ++row)
     {
@@ -300,68 +292,18 @@ void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatr
 									if (col_loc == rhs.nonzero_col_locations[col][k])
 									{
                     accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj));					
-/*
-                    if(rhs.nonzero_col_locations[col][k] != row)
-                    {
-                      accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]*conj));					
-                    }
-                    else
-                    {
-                      accum = add(accum, mul(this->nonzero_values[row][j], rhs.nonzero_values[col][k]));					
-                    }
-
-//*/
   							  }					
 								}
 							}
 						}
-            // instead of filling here, fill nnz_array ??
 						dst_row[col] = accum;
 						dst[col][row] = (accum*conj);
-						/*
-						if(row!=col) dst[col][row] = (accum*conj);
-						else dst[col][row] = (accum);
-            //*/
 					}
 					}
 				} // end for (row) loop
 
 		}
 
-#elif OPT_3
-
-		for (uint32_t row = 0; row < size; ++row)
-		{
-      // Here we make the assumption that the output will be symmetric across
-      // the diagonal, so we only need to calculate half of it, and  then
-      // write the other half to match.
-      complex_t* dst_row = dst.get_row(row);
-      const complex_t* src1 = get_row(row);
-      for (uint32_t col = row; col < size; ++col)
-      {
-          const complex_t* src2 = rhs.get_row(col);
-          complex_t accum = zero;
-          for (uint32_t i = 0; i < size; ++i)
-              accum = add(accum, mul(src1[i], src2[i] * conj));
-          dst_row[col] = accum;
-          dst[col][row] = accum * conj; // This * conj may belong on the previous line
-      }
-    } // end for (row) loop
-#elif mul_full
-		for (uint32_t row = 0; row < size; ++row)
-		{
-      complex_t* dst_row = dst.get_row(row);
-			for (uint32_t col =0; col<size; ++col)
-			{
-				complex_t accum = zero;
-				for (uint32_t i = 0; i < size; ++i)
-				{
-					accum = add(accum, mul((*this)[row][i], rhs[i][col]));
-				}
-				dst_row[col] = accum;
-			}
-		}
-#endif // end if opt4, opt3 
 dst.compress_matrix_storage();
 }
 
@@ -383,11 +325,6 @@ void ComplexMatrix::add_complex_scaled_hermitian(const ComplexMatrix& rhs, const
 void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale)
 {
 
-    bool print_add = false;
-    if(print_add) printf("[addition fnc] THIS: \n");
-    if(print_add) this -> print_compressed_storage_full();
-    if(print_add) printf("[addition fnc] RHS: \n");
-    if(print_add) rhs.print_compressed_storage_full();
     /* Set up arrays/pointers etc. to send to reallocate function at end. */
     uint32_t num_rows = this->num_rows;
     uint32_t upper_max_nnz = num_rows;
@@ -422,9 +359,7 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
       uint32_t this_not_added_by_col[this_row_num_nnz];
 
       uint32_t row_nnz_counter = 0;
-      if(print_add) printf("[addition fnc] Row %u: this_nnz: %u \t rhs_nnz: %u \n", row, this_row_num_nnz, rhs_row_num_nnz);
       a=b=c=0;
-      if(print_add) printf("[addition fnc] Before row loop: a=%u \t b=%u \t c=%u \n", a,b,c);
       uint32_t rhs_cols_been_added[rhs_row_num_nnz];
       for(uint32_t i=0; i<rhs_row_num_nnz; i++)
       {
@@ -492,11 +427,9 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
         }
       }    
 
-      if(print_add) printf("[addition fnc] Before unused arrays, a=%u b=%u c=%u \n", a,b,c);
       for(uint32_t k=0; k<b; k++)
       {
         uint32_t col = rhs_unused_cols[k];
-        if(print_add) printf("[addition fnc] row %u unused RHS col %u \n", row, rhs.nonzero_col_locations[row][col]);
         tmp_nnz_vals[row][a] = mul(rhs.nonzero_values[row][col], scale);
         tmp_nnz_col_locs[row][a] = rhs.nonzero_col_locations[row][col];
         a++;
@@ -508,15 +441,12 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
       for(uint32_t k=0; k<c; k++)
       {
         uint32_t col = this_unused_cols[k];
-        if(print_add) ("[addition fnc] row %u unused this col %u \n", row, this->nonzero_col_locations[row][col]);
         tmp_nnz_vals[row][a] = this->nonzero_values[row][col];
         tmp_nnz_col_locs[row][a] = this->nonzero_col_locations[row][col];
         a++;
         row_nnz_counter++;
         tmp_nnz_by_row[row]++;
       } 
-      if(print_add) ("[addition fnc] After Used/Unused: a=%u \t b=%u \t c=%u \n", a,b,c);
-      if(print_add) ("[addition fnc] Row %u Counter %u \n", row, row_nnz_counter);
     }
     
     new_max_nnz = 0;
@@ -528,10 +458,7 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
       }
     }
     
-    if(print_add) printf("[addition fnc %d] New max_nnz going into reallocate fnc = %u \n", __LINE__, new_max_nnz);
     this->reallocate(new_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);
-    if(print_add) printf("[addition fnc %d] After Reallocation: \n", __LINE__);
-    if(print_add) this-> print_compressed_storage_full();
 
 }
 
@@ -645,8 +572,6 @@ void ComplexMatrix::steal_values(const ComplexMatrix& other)
 bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
-    if(PRINT_LINE_DEBUG) printf("In exp ham: \n");
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
     double scalar_by_time = scale;
 		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
@@ -657,7 +582,6 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
     bool print_exp_k_loop_swap = false;
     bool print_exp_mult = false;
     uint32_t k_max = 100;
-    /* TODO Construct pa[0,1] as sparse from the start */
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
@@ -673,7 +597,6 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 		double scale_time_over_k_factorial = 1.0;
 		// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
 
      ComplexMatrix& new_pa = *pa[0];
      ComplexMatrix& old_pa = *pa[1];
@@ -705,75 +628,19 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
         
             uint32_t alternate = k & 1;
 
-           /* TODO [swap] remove declaration to just below pa declaraion */
-//           ComplexMatrix& new_pa = *pa[alternate];
- //          ComplexMatrix& old_pa = *pa[1 - alternate];
-/* 
-            printf("[exp k loop k= %u %d] new_pa: \n", k, __LINE__);
-            new_pa.debug_print();
-
-            printf("[exp k loop k= %u %d] new_pa: \n", k, __LINE__);
-            new_pa.debug_print();
-
-
-            new_pa.compress_matrix_storage();
-            old_pa.compress_matrix_storage();
-            printf("[k=%u] Compressed before exp \n", k);
-            printf("new_pa:\n");
-            new_pa.print_compressed_storage();
-            printf("old_pa:\n");
-            old_pa.print_compressed_storage();
-*/
 
             if (k > 0)
             {
-                //new_pa.compress_matrix_storage();
-                //old_pa.compress_matrix_storage();
-								//new_pa.make_zero();
+
                 if(k>1)
                 {
-                  if(print_exp_k_loop_swap) printf("[exp k=%u %d] BEFORE SWAP \n", k, __LINE__);
-                  if(print_exp_k_loop_swap) printf("old_pa: \n");
-                  if(print_exp_k_loop_swap) old_pa.print_compressed_storage_full();
-                  if(print_exp_k_loop_swap) printf("new_pa: \n");
-                  if(print_exp_k_loop_swap) new_pa.print_compressed_storage_full();
-
                   old_pa.swap_matrices(new_pa);
-
-                  if(print_exp_k_loop_swap) printf("[exp k=%u %d] AFTER SWAP \n", k, __LINE__);
-                  if(print_exp_k_loop_swap) printf("old_pa: \n");
-                  if(print_exp_k_loop_swap) old_pa.print_compressed_storage_full();
-                  if(print_exp_k_loop_swap) printf("new_pa: \n");
-                  if(print_exp_k_loop_swap) new_pa.print_compressed_storage_full();
-
                 }
-
-								if(print_exp_k_loop | print_exp_mult) printf("[exp mult k=%u %d] Multiplying:  \n", k, __LINE__);
-								if(print_exp_k_loop | print_exp_mult) printf("[exp mult k=%u %d] old_pa: \n", k, __LINE__);
-								if(print_exp_k_loop | print_exp_mult) old_pa.print_compressed_storage_full();
-								if(print_exp_k_loop | print_exp_mult) printf("[exp mult k=%u %d] by THIS: \n", k, __LINE__);
-
-
-
-                
                 old_pa.sparse_hermitian_mult(*this, new_pa);                
-
-
-
-								if(print_exp_k_loop | print_exp_mult) printf("[exp mult k=%u %d] After mult: new_pa: \n",k,  __LINE__);
-								if(print_exp_k_loop | print_exp_mult) new_pa.print_compressed_storage_full();	
-  
-                /* TODO [swap] 
-                old_pa.swap(new_pa) 
-                */
-                
-
 						}	
 						
             complex_t one_over_k_factorial_simd;
             
-            /* Set symmetrical element */
-            //printf("plus_minus = %u\n", plus_minus);
             if(plus_minus == true) // plus_minus = true -> (+i) 
             {
 						  if((k)%4 == 0 ) // k=0,4,8...
@@ -846,13 +713,9 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 
 
     }
-    //dst.compress_matrix_storage();
-    if(PRINT_LINE_DEBUG) printf("Line %d in file %s \n", __LINE__, __FILE__);
     dst.decompress(dst_ptr);
 
     return infinite_val;
-
-    
 }
 
 
