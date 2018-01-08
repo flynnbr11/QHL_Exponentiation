@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <cmath>
-#include <malloc.h>
+//#include <malloc.h>
 #include <string.h>
 #include <emmintrin.h>
 #include <immintrin.h>
@@ -17,12 +17,11 @@ typedef __m128d scalar_t;
 typedef __m128d complex_t;
 #define TOLERANCE 1e-52
 
-/*
-* for installing on mac
+// for installing on mac if clang not defined, include malloc. 
+//Malloc included in stdlib.h for mac
 #ifndef __clang__
-# include <malloc.h>
+#include <malloc.h>
 #endif
-*/
 
 #define VERBOSE_H 0
 #define COMPRESS 1
