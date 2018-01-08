@@ -13,7 +13,6 @@ def get_linenumber():
 
 def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False):
     import numpy as np
-    
     if np.shape(src)[0] != np.shape(src)[1]: 
         ("Hamiltonian: ", src)
         raise("Expected Square matrix, given matrix of shape ", np.shape(src))
@@ -21,6 +20,11 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, p
         print("Hamiltonian: ", src)
         print("Expected src with two dimensions; got ", src.ndim)
     n_qubits=np.log2(np.shape(src)[0])
+
+    if src.dtype != 'complex128':
+        # Ensure datatype is complex
+        src = src.astype('complex128')
+    
     if n_qubits >= 7.0:
       return exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
     else: 
