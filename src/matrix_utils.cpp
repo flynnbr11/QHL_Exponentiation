@@ -122,19 +122,19 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     uint32_t num_rows = this->num_rows;
     uint32_t num_elements = num_rows*num_rows;
     
-		complex_t* nonzero_values;
-		nonzero_values = new complex_t[num_elements];
-		
-		uint32_t* rows;
-		rows = new uint32_t[num_elements];
-		uint32_t* cols;
-		cols = new uint32_t[num_elements];
-		uint32_t* row_full_upto;
-		row_full_upto = new uint32_t[num_rows];
+	  complex_t* nonzero_values;
+	  nonzero_values = new complex_t[num_elements];
+	
+	  uint32_t* rows;
+	  rows = new uint32_t[num_elements];
+	  uint32_t* cols;
+	  cols = new uint32_t[num_elements];
+	  uint32_t* row_full_upto;
+	  row_full_upto = new uint32_t[num_rows];
     uint32_t k = 0;		
     uint32_t total_num_nnz = 0;    
-		uint32_t* temp_nnz_by_row;
-		temp_nnz_by_row = new uint32_t[num_rows];
+	  uint32_t* temp_nnz_by_row;
+	  temp_nnz_by_row = new uint32_t[num_rows];
 
     /* TODO: release memory -- memory leak risk*/    
 
@@ -261,6 +261,33 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     }
 
     dst.reallocate(tmp_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);    
+
+    /* Tidy up. Delete pointers introduced for this function */
+    /* 29/1 */
+    //*
+    delete[] nonzero_values;
+    delete[] rows;
+    delete[] cols;
+    delete[] temp_nnz_by_row;
+    delete[] row_full_upto;
+    
+    delete[] tmp_nnz_by_row;
+    
+    
+    //*/
+    
+    //*
+    for(uint32_t i=0; i<num_rows; i++)
+    {
+      delete[] tmp_nnz_vals[i];
+      delete[] tmp_nnz_col_locs[i];
+    }
+    
+    delete[] tmp_nnz_vals;
+    delete[] tmp_nnz_col_locs;
+	     
+    //*/
+
 }
 
 void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst) // changing const of rhs
@@ -459,7 +486,21 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
     }
     
     this->reallocate(new_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);
-
+  
+    /* Tidy up. Delete pointers introduced for this function */
+    /* 29/1 */
+    //*
+    delete[] tmp_nnz_by_row;
+    
+    for(uint32_t i=0; i<num_rows; i++)
+    {
+      delete[] tmp_nnz_vals[i];
+      delete[] tmp_nnz_col_locs[i];
+    }
+    
+    delete[] tmp_nnz_vals;
+    delete[] tmp_nnz_col_locs;
+    //*/
 }
 
 
@@ -528,7 +569,27 @@ void ComplexMatrix::swap_matrices(ComplexMatrix& other)
 
   this->reallocate(other_max_nnz, other_nnz_by_row, other_nnz_vals, other_nnz_col_locs);    
   other.reallocate(this_max_nnz, this_nnz_by_row, this_nnz_vals, this_nnz_col_locs);    
-  
+
+  /* Tidy up. Delete pointers introduced for this function */
+  /* 29/1 */
+  //*
+  delete[] this_nnz_by_row;
+  for(uint32_t i=0; i<num_rows; i++)
+  {
+    delete[] this_nnz_vals[i];
+    delete[] this_nnz_col_locs[i];
+  }
+
+  delete[] other_nnz_by_row;
+  for(uint32_t i=0; i<num_rows; i++)
+  {
+    delete[] other_nnz_vals[i];
+    delete[] other_nnz_col_locs[i];
+  }
+
+  delete[] other_nnz_vals;
+  delete[] other_nnz_col_locs;
+  //*/
 }
 
 
@@ -563,7 +624,19 @@ void ComplexMatrix::steal_values(const ComplexMatrix& other)
   } 
 
   this->reallocate(other_max_nnz, other_nnz_by_row, other_nnz_vals, other_nnz_col_locs);    
-  
+
+  /* Tidy up. Delete pointers introduced for this function */
+  /* 29/1 */
+  //*
+  delete[] other_nnz_by_row;
+  for(uint32_t i=0; i<num_rows; i++)
+  {
+    delete[] other_nnz_vals[i];
+    delete[] other_nnz_col_locs[i];
+  }
+  delete[] other_nnz_vals;
+  delete[] other_nnz_col_locs;
+  //*/
 }
 
 
@@ -727,15 +800,15 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
     /* To avoid extra copying, we alternate power accumulation matrices */
     double scalar_by_time = scale;
 
-		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
+	bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
 
     double norm_scalar;
     bool do_print = false;
 
-		ComplexMatrix rescaled_mtx(num_rows, num_cols);
+	ComplexMatrix rescaled_mtx(num_rows, num_cols);
 
-		/* Rescale so that all matrix elements <= 1 */
+	/* Rescale so that all matrix elements <= 1 */
 
     /*
 	  norm_scalar = this -> get_max_element_magnitude();
@@ -759,17 +832,17 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
     dst.make_zero();
 
     double k_fact = 1.0;
-		double scale_time_over_k_factorial = 1.0;
-		// double current_max_element = this -> get_max_element_magnitude();
+	double scale_time_over_k_factorial = 1.0;
+	// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
 
     for (uint32_t k = 0; !done; ++k)
     {
         if (k > 0)
       	{
-						k_fact /= k;
-						scale_time_over_k_factorial *= scalar_by_time/k;
-				}
+		    k_fact /= k;
+		    scale_time_over_k_factorial *= scalar_by_time/k;
+		}
 				
 //        if (scale_time_over_k_factorial * current_max_element >= precision)
         if (scale_time_over_k_factorial >= precision)
@@ -796,7 +869,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 									
                 old_pa.mul_herm_for_e_minus_i(*this, new_pa);                
                 //current_max_element = new_pa.get_max_element_magnitude();
-						}	
+			}	
 						
             complex_t one_over_k_factorial_simd;
             
@@ -804,45 +877,45 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             //printf("plus_minus = %u\n", plus_minus);
             if(plus_minus == true) // plus_minus = true -> (+i) 
             {
-						  if((k)%4 == 0 ) // k=0,4,8...
-						  {
-							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
-						  }
-						  else if ( (k+3)%4 ==0) // k = 1,5,9
-						  {
-							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
-						  }
-						  else if ((k+2)%4 == 0) // k = 2,6,10
-						  {
-							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
-						  }
-						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
-						  {
-							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
-						  }					
+                if((k)%4 == 0 ) // k=0,4,8...
+                {
+                  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+                }
+                else if ( (k+3)%4 ==0) // k = 1,5,9
+                {
+                  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+                }
+                else if ((k+2)%4 == 0) // k = 2,6,10
+                {
+                  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+                }
+                else if ((k+1)%4 == 0 ) // k =3, 7, 11
+                {
+                  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+                }					
             }
             else
             { // plus_minus = false -> (-i)
-						  if((k)%4 == 0 ) // k=0,4,8...
-						  {
-							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
-						  }
-						  else if ( (k+3)%4 ==0) // k = 1,5,9
-						  {
-							  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
-						  }
-						  else if ((k+2)%4 == 0) // k = 2,6,10
-						  {
-							  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
-						  }
-						  else if ((k+1)%4 == 0 ) // k =3, 7, 11
-						  {
-							  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
-						  }					
-						  else 
-						  {
-							  printf("k = %u doesn't meet criteria.\n", k);
-						  }
+                if((k)%4 == 0 ) // k=0,4,8...
+                {
+                  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
+                }
+                else if ( (k+3)%4 ==0) // k = 1,5,9
+                {
+                  one_over_k_factorial_simd = to_complex(0.0, -1.0*scale_time_over_k_factorial); 
+                }
+                else if ((k+2)%4 == 0) // k = 2,6,10
+                {
+                  one_over_k_factorial_simd = to_complex(-1.0*scale_time_over_k_factorial, 0.0); 
+                }
+                else if ((k+1)%4 == 0 ) // k =3, 7, 11
+                {
+                  one_over_k_factorial_simd = to_complex(0.0, 1.0*scale_time_over_k_factorial); 
+                }					
+                else 
+                {
+                  printf("k = %u doesn't meet criteria.\n", k);
+                }
             }
     
             if(!std::isfinite(scale_time_over_k_factorial) || k_fact < 1e-300)

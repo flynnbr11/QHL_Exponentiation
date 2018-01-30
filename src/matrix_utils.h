@@ -104,13 +104,13 @@ public:
     ComplexMatrix(uint32_t rows, uint32_t cols, complex_t* data)
     : allocated_nnz_array(false), self_allocated(false), num_rows(rows), num_cols(cols), num_values(rows * cols), values(data)
     {
-				if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ vals \n");
+		if(VERBOSE_H) printf("In ComplexMatrix constructor  w/ vals \n");
     		// if(VERBOSE_H) debug_print();     		
         if(COMPRESS) compress_matrix_storage();
     }
 
     ComplexMatrix(uint32_t rows, uint32_t max_nnz,uint32_t* nnz_by_row,   uint32_t** nnz_col_locations, complex_t** nnz_vals)
-    : allocated_nnz_array(false), self_allocated(false), num_rows(rows)
+    : allocated_nnz_array(true), self_allocated(false), num_rows(rows)
     {
       num_cols=num_rows;
       num_values = num_rows * num_cols;
@@ -349,7 +349,7 @@ public:
 		}
 		
     bool print_reallocate = false;
-		void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
+	  void reallocate(uint32_t new_max_nnz, uint32_t* tmp_nnz_by_row, complex_t** tmp_nnz_vals, uint32_t** tmp_nnz_col_locs)
     {
 
       for(uint32_t i=0; i<num_rows; i++)
@@ -381,7 +381,7 @@ public:
 		  {
 			  nonzero_col_locations[i] = new uint32_t[new_max_nnz];
 			  nonzero_values[i] = new complex_t[new_max_nnz];
-      }
+         }
       
       for(uint32_t i=0; i<num_rows; i++)
       {
@@ -424,14 +424,14 @@ public:
     void make_identity();
     void make_zero();
     void mul_hermitian(const ComplexMatrix& rhs, ComplexMatrix& dst);
-		void sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst);
-		void sparse_hermitian_mult_old(const ComplexMatrix& rhs, ComplexMatrix& dst);
-		void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
+	  void sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst);
+	  void sparse_hermitian_mult_old(const ComplexMatrix& rhs, ComplexMatrix& dst);
+	  void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
     void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
-		void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
-		void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
+	  void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
+	  void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
-		bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
+	  bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
 //		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
 
     bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const;
@@ -446,6 +446,8 @@ public:
 		uint32_t *num_nonzeros_by_row;
 		uint32_t **nonzero_col_locations;
 		complex_t **nonzero_values;
+		
+		
 
 private:
     void destroy()
@@ -466,7 +468,10 @@ private:
 						delete[] nonzero_col_locations[i]; 
 						delete[] nonzero_values[i];
 					}
-					delete[] num_nonzeros_by_row; 
+//					if (num_nonzeros_by_row != nullptr)
+//					    delete[] num_nonzeros_by_row; 
+//					num_nonzeros_by_row = nullptr;
+				    delete[] num_nonzeros_by_row; 
 					delete[] nonzero_col_locations;
 					delete[] nonzero_values; 
 				}

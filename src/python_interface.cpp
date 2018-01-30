@@ -16,6 +16,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
+const bool PRINT_LINE=false;
 
 std::string test_expm()
 {
@@ -58,6 +59,7 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
+    printf("Python interface for sparse function reached.\n");
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
@@ -78,6 +80,7 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
         fprintf(stderr, "Error: Sparse function arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
     }
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
 
     size_t dst_rows = (size_t)PyArray_DIM(dst_matrix, 0);
     size_t dst_cols = (size_t)PyArray_DIM(dst_matrix, 1);
@@ -89,39 +92,6 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 
 
     uint32_t* nnz_by_row = (uint32_t*)PyArray_DATA(num_nnz_by_row_p);;
-//    uint32_t** nnz_col_locations = (uint32_t**)PyArray_DATA(nnz_col_locations_p);;
- //   complex_t** nnz_vals = (complex_t**)PyArray_DATA(nnz_vals_p);;
-
-
-/*
-    uint32_t* nnz_by_row;
-    uint32_t** nnz_col_locations;
-    complex_t** nnz_vals;
-
-    uint32_t num_nnz;	
-
-    nnz_vals = new complex_t*[num_nnz];
-    nnz_by_row = new uint32_t[num_rows];
-    nnz_col_locations = new uint32_t*[num_rows];
-    
-    for(uint32_t i=0; i<num_rows; i++)
-    {
-      nnz_vals[i] = new complex_t[max_nnz];
-      nnz_col_locations[i] = new uint32_t[max_nnz];
-    }
-
-    for (uint32_t i=0; i<num_rows; i++)
-    {
-      nnz_by_row[i] = (uint32_t) num_nnz_by_row_p[i];
-      for(uint32_t j=0; j<nnz_by_row[i]; j++)
-      {
-      	nnz_col_locations[i][j] = (uint32_t) nnz_col_locations_p[i][j];
-        nnz_vals[i][j] = (complex_t) nnz_vals_p[i][j];
-      }
-    }
-
-//*/
-
     complex_t* tmp_nnz_vals = (complex_t*)PyArray_DATA(nnz_vals_p);
     uint32_t* tmp_col = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
 
@@ -131,9 +101,6 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     uint32_t* tst_array = (uint32_t*)PyArray_DATA(nnz_col_locations_p);
     complex_t* tst_nnz_array = (complex_t*)PyArray_DATA(nnz_vals_p);
 
-
-    //printf("col array rows %u cols %u \n", col_rows, cols_cols); 
-    
     uint32_t** nnz_col_locations;
     complex_t** nnz_vals;
     nnz_vals = new complex_t*[num_rows];
@@ -147,16 +114,14 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     for (uint32_t i=0; i<num_rows; i++)
     {
 
-//      for(uint32_t j=0; j<nnz_by_row[i]; j++)
       for(uint32_t j=0; j<max_nnz; j++)
       {
-        //printf("(i,j) = (%u, %u), col = %u \n", i,j,tmp_col[i*max_nnz + j]);
-        //printf("(i,j) = (%u, %u), val = %.2e + %.2e i \n", i,j, get_real(tmp_nnz_vals[i*max_nnz + j]), get_imag(tmp_nnz_vals[i*max_nnz+j]));
       	nnz_col_locations[i][j] = tmp_col[2*(i*max_nnz+j)];
         nnz_vals[i][j] = tmp_nnz_vals[i*max_nnz+j];
       }
     }
 
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
 
     bool plus_minus_flag = false; // if flag is false, e^{-iHt}; if flag is true, e^{iHt}
     if (plus_or_minus == 1.0) 
@@ -164,39 +129,44 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
       plus_minus_flag = true;
     } // else plus_minus_flag=false
 
-//    ComplexMatrix dst(dst_rows, dst_cols);
-
- //   dst.make_zero();
-
-
-//  ComplexMatrix test_mtx(num_rows, max_nnz, nnz_by_row, nnz_vals, nnz_col_locations);
-//  test_mtx.print_compressed_storage_full();
-
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     
     ComplexMatrix hamiltonian(num_rows, max_nnz, nnz_by_row, nnz_col_locations, nnz_vals);
     complex_t* dst_ptr = (complex_t*)PyArray_DATA(dst_matrix);
-/*
-    hamiltonian.print_compressed_storage_full();
-//    complex_t* dst_ptr;
- //   dst_ptr = new complex_t[num_rows*num_rows];
-
-
-    printf("about to enter decompress function \n");
-    hamiltonian.decompress(dst_ptr);
-
-    ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
-
-    for (uint32_t i=0; i<num_rows*num_rows;i++)
-    {
-      printf("i=%u \t val = %.2e + %.2e i \n", i, get_real(dst_ptr[i]), get_imag(dst_ptr[i]));
-    }
-*/
     bool exp_reached_inf = 0;
-    //exp_reached_inf = hamiltonian.exp_ham_sparse(dst, scale, precision, plus_minus_flag);
+
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     
     exp_reached_inf = hamiltonian.exp_ham_sparse(dst_ptr, scale, precision, plus_minus_flag);
     
+    /*
+    Deleting pointers to try eliminate memory leak in sparse function.
+    */
+
+    //*    
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+    for(uint32_t i=0; i<num_rows; i++)
+    {
+    if(PRINT_LINE) fprintf(stderr,"%d\n", i);
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+      delete[] nnz_vals[i];
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+      delete[] nnz_col_locations[i];
+    }
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+    delete[] nnz_vals;
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+    delete[] nnz_col_locations;
+    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
+    //*/
     
+    /*
+    Py_DECREF(nnz_vals_p);    
+    Py_DECREF(nnz_col_locations_p);    
+    Py_DECREF(num_nnz_by_row_p);    
+    //Py_DECREF(dst_matrix);    
+    //*/
+    printf("End of sparse Python/C++ interface\n");
     return Py_BuildValue("b", exp_reached_inf);
 }
 
@@ -254,8 +224,8 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
 
     const ComplexMatrix src(src_rows, src_cols, src_ptr);
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
-		bool exp_reached_inf = false;
-		exp_reached_inf = src.exp_ham(dst, scale, precision, plus_minus_flag);
+	bool exp_reached_inf = false;
+	exp_reached_inf = src.exp_ham(dst, scale, precision, plus_minus_flag);
 	//	src.expm_minus_i_h_t(dst, time, precision, plus_minus_flag);
     
     result_str = "ok: e^{-iHt}";

@@ -6,12 +6,8 @@ Functions which are callable once hamiltonian_exponentiation has been imported.
 from __future__ import print_function # so print doesn't show brackets
 from inspect import currentframe
 
-def get_linenumber():
-    cf = currentframe()
-    return cf.f_back.f_lineno
 
-
-def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False):
+def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True):
     import numpy as np
     if np.shape(src)[0] != np.shape(src)[1]: 
         ("Hamiltonian: ", src)
@@ -25,9 +21,12 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, p
         # Ensure datatype is complex
         src = src.astype('complex128')
     
-    if n_qubits >= 7.0:
+    if n_qubits >= 7.0 and enable_sparse_functionality:
+      print("Sparse Exp ham function")
       return exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
+    
     else: 
+      print("Non-sparse Exp ham function")
       return exponentiate_ham(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
 
 
@@ -146,9 +145,12 @@ def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff 
   else: 
     max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(new_src)
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
-    
+
+    # Call C++ extension    
     inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
+
     if(inf_reached):
+      del dst
       import scipy
       from scipy import linalg
       if(n_qubits >= 6): # Large matrices -- worth using sparse.linalg
@@ -219,3 +221,80 @@ def random_hamiltonian(number_qubits):
     output = np.reshape(output, [2**size,2**size])
   # print('Ratio of non zero to total elements:', np.count_nonzero(output), ':', ((2**size)**2))
   return output
+  
+  
+def test_exp_ham_function(
+    min_qubit = 1,
+    max_qubit = 9,
+    test_large_cases = False, # default is not to compute linalg.expm for num_qubit > 9.
+    threshold = 1e-14, # Tolerance at which matrix elements considered equal
+    check_all_equal = True,
+    print_times_and_ratios = False,
+    test_sparse_speedup = False,
+    num_tests = 1
+):
+    """
+    Test that the function behaves as expected by computing 
+    exponentiated Hamiltonian via the function provided herein, exp_ham(ham,t)
+    and comparing the result with that given by linalg.expm(-1j*ham*t),
+    accurate to the threshold specified when calling this function.
+    """
+    import random
+    import time
+    from scipy import linalg
+    import numpy as np
+    
+    for k in range(num_tests):
+        print("\n\nTest ", k)
+        for num_qubit in range(min_qubit, max_qubit+1):
+            print("\n", num_qubit, " qubits." )
+            ham = random_hamiltonian(num_qubit)
+            t = random.random()
+            c1 = time.time()
+            custom = exp_ham(ham, t)
+            c2 = time.time()
+            tc = c2-c1
+            if print_times_and_ratios: print("sparse takes ", tc, " seconds.")
+            
+            if(num_qubit >= 7 and test_sparse_speedup == True):
+                d1 = time.time()
+                custom_without_sparse = exp_ham(ham, t, enable_sparse_functionality=False)
+                d2 = time.time()
+                td=d2 - d1
+                if print_times_and_ratios: print("non-sparse takes ", td, " seconds.")
+            
+            if num_qubit < 10 or test_large_cases is True:
+                l1=time.time()
+                lin = linalg.expm(-1j*ham*t)
+                l2=time.time()
+                tl = l2 - l1
+                if print_times_and_ratios: print("linalg takes ", tl, " seconds.")
+                
+                if not np.all( np.abs(lin - custom) < threshold):
+                    print("Not equal")
+                    check_all_equal = False
+                    
+              
+                if print_times_and_ratios: print("time ratio linalg:custom", (tl/tc)  )
+
+            if num_qubit >= 7 and test_sparse_speedup == True:
+                if print_times_and_ratios: print("time ratio sparse:non-sparse : ", (td/tc)  )
+            
+    num_models = (max_qubit - min_qubit + 1) * num_tests
+    
+    print("\n\nChecked ", num_models, " random Hamiltonians.")
+    if check_all_equal is not True:
+        print("---- ---- PROBLEM: Not all matrix elements equal ---- ----")
+    else:
+        print("---- ---- All matrix elements equal ---- ----")
+  
+def get_linenumber():
+    """
+    For use internally for debugging etc.
+    """
+    cf = currentframe()
+    return cf.f_back.f_lineno
+  
+  
+  
+  
