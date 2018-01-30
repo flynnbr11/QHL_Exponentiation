@@ -22,7 +22,7 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, p
         src = src.astype('complex128')
     
     if n_qubits >= 7.0 and enable_sparse_functionality:
-      print("Sparse Exp ham function")
+      #print("Sparse Exp ham function")
       return exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
     
     else: 

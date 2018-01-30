@@ -579,6 +579,10 @@ void ComplexMatrix::swap_matrices(ComplexMatrix& other)
     delete[] this_nnz_vals[i];
     delete[] this_nnz_col_locs[i];
   }
+  
+  delete[] this_nnz_vals;
+  delete[] this_nnz_col_locs;
+  
 
   delete[] other_nnz_by_row;
   for(uint32_t i=0; i<num_rows; i++)

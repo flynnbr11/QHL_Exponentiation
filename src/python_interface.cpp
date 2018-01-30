@@ -59,7 +59,7 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
-    printf("Python interface for sparse function reached.\n");
+    //printf("Python interface for sparse function reached.\n");
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
@@ -166,7 +166,7 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     Py_DECREF(num_nnz_by_row_p);    
     //Py_DECREF(dst_matrix);    
     //*/
-    printf("End of sparse Python/C++ interface\n");
+    //printf("End of sparse Python/C++ interface\n");
     return Py_BuildValue("b", exp_reached_inf);
 }
 
