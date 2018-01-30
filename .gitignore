@@ -10,6 +10,7 @@ hamiltonian_exponentiation/*
 hamiltonian_exponentiation.egg-info/*
 src/*
 qle_plots/*
+memory_tests/*
 
 *.pyc
 *.so
