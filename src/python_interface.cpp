@@ -59,7 +59,6 @@ static PyObject* SimpleTest(PyObject *self, PyObject *args)
 
 static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 {
-    //printf("Python interface for sparse function reached.\n");
     std::string result_str;
     double precision = 0.0f;
     double scale = 0.0f;
@@ -69,10 +68,6 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     PyArrayObject* nnz_col_locations_p;
     PyArrayObject* num_nnz_by_row_p;
     PyArrayObject* dst_matrix;
-
-//  libmu.exp_pm_ham_sparse(dst, nnz_valz, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
-
-//    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
 
 
      if (!PyArg_ParseTuple(args, "O!O!O!O!dddd",  &PyArray_Type, &dst_matrix, &PyArray_Type, &nnz_vals_p, &PyArray_Type, &nnz_col_locations_p, &PyArray_Type, &num_nnz_by_row_p, &max_nnz_in_any_row , &plus_or_minus, &scale, &precision))
@@ -140,10 +135,9 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     exp_reached_inf = hamiltonian.exp_ham_sparse(dst_ptr, scale, precision, plus_minus_flag);
     
     /*
-    Deleting pointers to try eliminate memory leak in sparse function.
+    Free allocated memory.
     */
 
-    //*    
     if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     for(uint32_t i=0; i<num_rows; i++)
     {
@@ -158,15 +152,7 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     delete[] nnz_col_locations;
     if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
-    //*/
-    
-    /*
-    Py_DECREF(nnz_vals_p);    
-    Py_DECREF(nnz_col_locations_p);    
-    Py_DECREF(num_nnz_by_row_p);    
-    //Py_DECREF(dst_matrix);    
-    //*/
-    //printf("End of sparse Python/C++ interface\n");
+
     return Py_BuildValue("b", exp_reached_inf);
 }
 
@@ -182,7 +168,6 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
-    // libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision)
     if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
     {
         fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
@@ -226,7 +211,6 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
 	bool exp_reached_inf = false;
 	exp_reached_inf = src.exp_ham(dst, scale, precision, plus_minus_flag);
-	//	src.expm_minus_i_h_t(dst, time, precision, plus_minus_flag);
     
     result_str = "ok: e^{-iHt}";
     return Py_BuildValue("b", exp_reached_inf);
@@ -245,7 +229,6 @@ static PyObject *theError;
 PyMODINIT_FUNC initlibmatrix_utils(void)
 {
 	int python_version = PY_MAJOR_VERSION;
-	//printf("\n \n \n \n \n Python version : %d \n \n \n \n \n ", python_version);
 
     PyObject *m;
 
@@ -259,13 +242,13 @@ PyMODINIT_FUNC initlibmatrix_utils(void)
     Py_INCREF(theError);
     PyModule_AddObject(m, "error", theError);
 }
-//*/
 
-/* Python3.5 C++ interface: Py_InitModule deprecated; use PyModuleDef and PyModule_Create instead */
+/* 
+* Python3.5 C++ interface: Py_InitModule deprecated; 
+* use PyModuleDef and PyModule_Create instead 
+*/
 
-//*
 #elif PY_MAJOR_VERSION == 3
-/* TODO: This section is reason updating function framework doesn't work for Python3+*/
 
 static struct PyModuleDef libmatrix_utils =
 {
@@ -292,6 +275,5 @@ PyMODINIT_FUNC PyInit_libmatrix_utils(void)
     PyModule_AddObject(m, "error", theError);
     return m;
 }
-//*/
 
 #endif

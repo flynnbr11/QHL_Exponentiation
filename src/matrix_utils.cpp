@@ -111,11 +111,13 @@ void ComplexMatrix::print_compressed_storage_full() const
 #define mul_full 0
 
 
-// dst = this * rhs
 void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst)
 {
-     
-    // Multiplication of one sparse Hermitian matrix by another. 
+    /*
+    * Multiplication of one sparse Hermitian matrix by another. 
+    * Called by a ComplexMatrix, given argument rhs (another ComplexMatrix)
+    * Places this*rhs in dst. 
+    */
     size_t size = this->num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
@@ -262,9 +264,7 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
 
     dst.reallocate(tmp_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);    
 
-    /* Tidy up. Delete pointers introduced for this function */
-    /* 29/1 */
-    //*
+    /* Delete allocated memory for this function */
     delete[] nonzero_values;
     delete[] rows;
     delete[] cols;
@@ -272,11 +272,6 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     delete[] row_full_upto;
     
     delete[] tmp_nnz_by_row;
-    
-    
-    //*/
-    
-    //*
     for(uint32_t i=0; i<num_rows; i++)
     {
       delete[] tmp_nnz_vals[i];
@@ -285,9 +280,6 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
     
     delete[] tmp_nnz_vals;
     delete[] tmp_nnz_col_locs;
-	     
-    //*/
-
 }
 
 void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst) // changing const of rhs
@@ -487,9 +479,7 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
     
     this->reallocate(new_max_nnz, tmp_nnz_by_row, tmp_nnz_vals, tmp_nnz_col_locs);
   
-    /* Tidy up. Delete pointers introduced for this function */
-    /* 29/1 */
-    //*
+    /* Delete allocated memory for this function */
     delete[] tmp_nnz_by_row;
     
     for(uint32_t i=0; i<num_rows; i++)
@@ -500,7 +490,6 @@ void ComplexMatrix::add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs
     
     delete[] tmp_nnz_vals;
     delete[] tmp_nnz_col_locs;
-    //*/
 }
 
 
@@ -570,30 +559,23 @@ void ComplexMatrix::swap_matrices(ComplexMatrix& other)
   this->reallocate(other_max_nnz, other_nnz_by_row, other_nnz_vals, other_nnz_col_locs);    
   other.reallocate(this_max_nnz, this_nnz_by_row, this_nnz_vals, this_nnz_col_locs);    
 
-  /* Tidy up. Delete pointers introduced for this function */
-  /* 29/1 */
-  //*
+  /* Delete memory allocated for this function  */
   delete[] this_nnz_by_row;
   for(uint32_t i=0; i<num_rows; i++)
   {
     delete[] this_nnz_vals[i];
     delete[] this_nnz_col_locs[i];
   }
-  
   delete[] this_nnz_vals;
   delete[] this_nnz_col_locs;
-  
-
   delete[] other_nnz_by_row;
   for(uint32_t i=0; i<num_rows; i++)
   {
     delete[] other_nnz_vals[i];
     delete[] other_nnz_col_locs[i];
   }
-
   delete[] other_nnz_vals;
   delete[] other_nnz_col_locs;
-  //*/
 }
 
 
@@ -629,9 +611,6 @@ void ComplexMatrix::steal_values(const ComplexMatrix& other)
 
   this->reallocate(other_max_nnz, other_nnz_by_row, other_nnz_vals, other_nnz_col_locs);    
 
-  /* Tidy up. Delete pointers introduced for this function */
-  /* 29/1 */
-  //*
   delete[] other_nnz_by_row;
   for(uint32_t i=0; i<num_rows; i++)
   {
@@ -640,18 +619,16 @@ void ComplexMatrix::steal_values(const ComplexMatrix& other)
   }
   delete[] other_nnz_vals;
   delete[] other_nnz_col_locs;
-  //*/
 }
 
 
 
-//bool ComplexMatrix::exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const
 bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
 
     double scalar_by_time = scale;
-		bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
+    bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
     double norm_scalar;
     bool do_print = false;
@@ -688,7 +665,6 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 						scale_time_over_k_factorial *= scalar_by_time/k;
 				}
 				
-//        if (scale_time_over_k_factorial * current_max_element >= precision)
         if (scale_time_over_k_factorial >= precision)
         { 
         /* 
@@ -812,21 +788,6 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 
 	ComplexMatrix rescaled_mtx(num_rows, num_cols);
 
-	/* Rescale so that all matrix elements <= 1 */
-
-    /*
-	  norm_scalar = this -> get_max_element_magnitude();
-	  scalar_t scale = to_scalar(1.0/norm_scalar);
-		rescaled_mtx.make_zero();
-		rescaled_mtx.add_scaled_hermitian(*this, scale);
-		rescaled_mtx.compress_matrix_storage();
-    
-    scalar_t one = to_scalar(1.0);
-		rescaled_mtx.make_zero();
-		rescaled_mtx.add_scaled_hermitian(*this, one);
-		rescaled_mtx.compress_matrix_storage();
-    */
-    
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
@@ -837,7 +798,6 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 
     double k_fact = 1.0;
 	double scale_time_over_k_factorial = 1.0;
-	// double current_max_element = this -> get_max_element_magnitude();
     bool done = false;
 
     for (uint32_t k = 0; !done; ++k)
@@ -848,7 +808,6 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 		    scale_time_over_k_factorial *= scalar_by_time/k;
 		}
 				
-//        if (scale_time_over_k_factorial * current_max_element >= precision)
         if (scale_time_over_k_factorial >= precision)
         { 
         /* 
@@ -872,13 +831,11 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
                 old_pa.compress_matrix_storage();
 									
                 old_pa.mul_herm_for_e_minus_i(*this, new_pa);                
-                //current_max_element = new_pa.get_max_element_magnitude();
 			}	
 						
             complex_t one_over_k_factorial_simd;
             
             /* Set symmetrical element */
-            //printf("plus_minus = %u\n", plus_minus);
             if(plus_minus == true) // plus_minus = true -> (+i) 
             {
                 if((k)%4 == 0 ) // k=0,4,8...

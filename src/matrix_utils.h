@@ -55,8 +55,7 @@ inline const complex_t mul(const complex_t a_b, const complex_t c_d)
     complex_t bc_bd = _mm_mul_pd(b_b, d_c);
     complex_t ad_ac = _mm_mul_pd(a_a, c_d);
     const complex_t outcome = _mm_addsub_pd(ad_ac, bc_bd);
-		return outcome;
-    //return _mm_addsub_pd(ad_ac, bc_bd);
+	return outcome;
 }
 inline void muleq(complex_t* a_b, const complex_t c_d)
 {
@@ -369,11 +368,9 @@ public:
 				delete[] nonzero_col_locations[i]; 
 				delete[] nonzero_values[i];
 			}
-			//delete[] num_nonzeros_by_row; 
 			delete[] nonzero_col_locations;
 			delete[] nonzero_values; 
       
-		  //num_nonzeros_by_row = new uint32_t[num_rows];
 		  nonzero_col_locations = new uint32_t*[num_rows];
 		  nonzero_values = new complex_t*[num_rows];
 
@@ -415,7 +412,6 @@ public:
 #ifdef MSVC
         values = (complex_t*)_aligned_malloc(num_values * sizeof(complex_t), 16);
 #else
-//        values = (complex_t*)memalign(16, num_values * sizeof(complex_t));
         values = (complex_t*)malloc(num_values * sizeof(complex_t));
 #endif
 				if(COMPRESS) compress_matrix_storage();
@@ -432,7 +428,6 @@ public:
 	  void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
 	  bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
-//		bool exp_ham_sparse(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
 
     bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const;
     void debug_print() const;
@@ -468,9 +463,6 @@ private:
 						delete[] nonzero_col_locations[i]; 
 						delete[] nonzero_values[i];
 					}
-//					if (num_nonzeros_by_row != nullptr)
-//					    delete[] num_nonzeros_by_row; 
-//					num_nonzeros_by_row = nullptr;
 				    delete[] num_nonzeros_by_row; 
 					delete[] nonzero_col_locations;
 					delete[] nonzero_values; 

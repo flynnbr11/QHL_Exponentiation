@@ -217,7 +217,6 @@ def random_hamiltonian(number_qubits):
         else:
             output = np.kron(output, params[i+1]*newoplist[i+1])
     output = np.reshape(output, [2**size,2**size])
-  # print('Ratio of non zero to total elements:', np.count_nonzero(output), ':', ((2**size)**2))
   return output
   
   
