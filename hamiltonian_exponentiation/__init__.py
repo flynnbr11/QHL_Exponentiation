@@ -9,22 +9,23 @@ from inspect import currentframe
 
 def unitary_evolve(ham, t, input_probe, use_sparse_dot_dunction=False, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
     
-    if use_sparse_dot_dunction: 
-      from scipy.sparse import csr_matrix
-      return csr_matrix(exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)).dot(input_probe)
-#      sp_ham = csr_matrix(unitary)
-      #evolved_probe = sp_ham.dot(input_probe)
-      #del sp_ham
-      #return evolved_probe
+    """
+    Pass ham, t, input_probe (i.e. state) into this function
+    It will send to exponentiation function, and perform matrix-vector multiplication of the exponentiated 
+    Hamiltonian with the given state. 
+    Optional arguments are the same as in exp_ham, and are passed directly to it. 
+    """
+    if not use_sparse_dot_dunction: 
+      import numpy as np
+      return np.dot(
+                  exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number),
+                  input_probe)
       
     else: 
-      import numpy as np
-#      unitary = exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)
-      return np.dot(exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number), input_probe)
-      #del unitary
-      #return evolved_probe
-                       
-
+      from scipy.sparse import csr_matrix
+      return csr_matrix(
+                  exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)
+              ).dot(input_probe)
 
 
 def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
