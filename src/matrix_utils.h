@@ -378,7 +378,7 @@ public:
 		  {
 			  nonzero_col_locations[i] = new uint32_t[new_max_nnz];
 			  nonzero_values[i] = new complex_t[new_max_nnz];
-         }
+      }
       
       for(uint32_t i=0; i<num_rows; i++)
       {
@@ -457,16 +457,65 @@ private:
                 free(values);
 #endif
         }
+        /*
 				if(allocated_nnz_array==1){
 					for (uint32_t i=0; i < num_rows; i++)
 					{
 						delete[] nonzero_col_locations[i]; 
 						delete[] nonzero_values[i];
 					}
-				    delete[] num_nonzeros_by_row; 
+				  delete[] num_nonzeros_by_row; 
 					delete[] nonzero_col_locations;
 					delete[] nonzero_values; 
 				}
+        //*/
+        
+        /*
+        if(num_nonzeros_by_row != null_ptr)
+        {
+					delete[] num_nonzeros_by_row;
+        }
+
+        if(nonzero_col_locations != null_ptr)
+        {
+					for (uint32_t i=0; i < num_rows; i++)
+					{
+						delete[] nonzero_col_locations[i]; 
+					}
+					delete[] nonzero_col_locations;
+        
+        }
+
+
+        if(nonzero_values != null_ptr)
+        {
+					for (uint32_t i=0; i < num_rows; i++)
+					{
+						delete[] nonzero_values[i]; 
+					}
+					delete[] nonzero_values;
+        
+        }
+        //*/
+
+				delete[] num_nonzeros_by_row;
+
+				for (uint32_t i=0; i < num_rows; i++)
+				{
+					delete[] nonzero_col_locations[i]; 
+				}
+				delete[] nonzero_col_locations;
+
+				for (uint32_t i=0; i < num_rows; i++)
+				{
+					delete[] nonzero_values[i]; 
+				}
+				delete[] nonzero_values;
+        
+
+
+
+
  				allocated_nnz_array= false;
         self_allocated = false;
         values = NULL;

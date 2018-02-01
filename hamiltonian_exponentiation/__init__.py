@@ -7,7 +7,27 @@ from __future__ import print_function # so print doesn't show brackets
 from inspect import currentframe
 
 
-def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True):
+def unitary_evolve(ham, t, input_probe, use_sparse_dot_dunction=False, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
+    
+    if use_sparse_dot_dunction: 
+      from scipy.sparse import csr_matrix
+      return csr_matrix(exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)).dot(input_probe)
+#      sp_ham = csr_matrix(unitary)
+      #evolved_probe = sp_ham.dot(input_probe)
+      #del sp_ham
+      #return evolved_probe
+      
+    else: 
+      import numpy as np
+#      unitary = exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)
+      return np.dot(exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number), input_probe)
+      #del unitary
+      #return evolved_probe
+                       
+
+
+
+def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
     import numpy as np
     if np.shape(src)[0] != np.shape(src)[1]: 
         ("Hamiltonian: ", src)
@@ -21,11 +41,11 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, p
         # Ensure datatype is complex
         src = src.astype('complex128')
     
-    if n_qubits >= 7.0 and enable_sparse_functionality:
-      return exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
+    if n_qubits >= sparse_min_qubit_number and enable_sparse_functionality:
+      return np.array(exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method))
     
     else: 
-      return exponentiate_ham(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
+      return np.array(exponentiate_ham(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method))
 
 
 def exp_ham_trotter(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
@@ -117,7 +137,6 @@ def get_linenumber():
 def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
   import numpy as np
   import libmatrix_utils as libmu
-
   max_element = np.max(np.abs(src))
   if max_element == 0.0:
     max_element = 1.0
@@ -188,6 +207,18 @@ def matrix_preprocessing(ham):
             k+=1
 
     return max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals 
+
+
+def random_state(num_qubits):
+    import numpy as np
+    dim = 2**num_qubits
+    real = np.random.rand(1,dim)
+    imaginary = np.random.rand(1,dim)
+    complex_vectors = np.empty([1, dim])
+    complex_vectors = real +1.j*imaginary
+    norm_factor = np.linalg.norm(complex_vectors)
+    probe = complex_vectors/norm_factor
+    return probe[0][:]
 
 
 def random_hamiltonian(number_qubits):

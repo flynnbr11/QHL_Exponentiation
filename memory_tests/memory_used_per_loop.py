@@ -29,8 +29,7 @@ def run_exp_ham(num_qubits = 1, t  = 1, num_tests = 1,
     
     for i in range(num_tests):
         
-        if print_mem_status and i>0: print("Line ", lineno(), "\t Memory used since last loop : ", virtual_memory().used - used_memory)
-        used_memory = virtual_memory().used
+        if print_mem_status and i>0: print("i=",i, "\t System memory used loop : ", virtual_memory().used)
         
         ham = h.random_hamiltonian(num_qubits)
         t = random.random()
@@ -46,10 +45,6 @@ def run_exp_ham(num_qubits = 1, t  = 1, num_tests = 1,
         
         del ham
         del expd
-
-
-
-
 
 
 

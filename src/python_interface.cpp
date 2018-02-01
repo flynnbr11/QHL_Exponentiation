@@ -138,20 +138,13 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     Free allocated memory.
     */
 
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     for(uint32_t i=0; i<num_rows; i++)
     {
-    if(PRINT_LINE) fprintf(stderr,"%d\n", i);
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
       delete[] nnz_vals[i];
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
       delete[] nnz_col_locations[i];
     }
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     delete[] nnz_vals;
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     delete[] nnz_col_locations;
-    if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
 
     return Py_BuildValue("b", exp_reached_inf);
 }

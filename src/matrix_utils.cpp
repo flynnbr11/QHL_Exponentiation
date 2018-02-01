@@ -680,8 +680,6 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
         */
         
             uint32_t alternate = k & 1;
-
-
             if (k > 0)
             {
 
@@ -694,7 +692,7 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 						
             complex_t one_over_k_factorial_simd;
             
-            if(plus_minus == true) // plus_minus = true -> (+i) 
+            if(plus_minus == true) // plus_minus == true -> (+iHt) being calculated 
             {
 						  if((k)%4 == 0 ) // k=0,4,8...
 						  {
@@ -714,7 +712,7 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 						  }					
             }
             else
-            { // plus_minus = false -> (-i)
+            { // plus_minus == false -> (-iHt) being calculated
 						  if((k)%4 == 0 ) // k=0,4,8...
 						  {
 							  one_over_k_factorial_simd = to_complex(scale_time_over_k_factorial, 0.0); 
