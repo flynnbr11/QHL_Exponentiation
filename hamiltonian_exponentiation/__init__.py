@@ -283,14 +283,14 @@ def test_exp_ham_function(
             custom = exp_ham(ham, t)
             c2 = time.time()
             tc = c2-c1
-            if print_times_and_ratios: print("sparse takes ", tc, " seconds.")
+            if print_times_and_ratios: print("Custom function takes ", tc, " seconds.")
             
             if(num_qubit >= 7 and test_sparse_speedup == True):
                 d1 = time.time()
                 custom_without_sparse = exp_ham(ham, t, enable_sparse_functionality=False)
                 d2 = time.time()
                 td=d2 - d1
-                if print_times_and_ratios: print("non-sparse takes ", td, " seconds.")
+                if print_times_and_ratios: print("Custom function takes ", td, " seconds.")
             
             if num_qubit < 10 or test_large_cases is True:
                 l1=time.time()
