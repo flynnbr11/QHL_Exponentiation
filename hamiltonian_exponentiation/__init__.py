@@ -7,7 +7,7 @@ from __future__ import print_function # so print doesn't show brackets
 from inspect import currentframe
 
 
-def unitary_evolve(ham, t, input_probe, use_sparse_dot_dunction=False, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
+def unitary_evolve(ham, t, input_probe, use_sparse_dot_function=False, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
     
     """
     Pass ham, t, input_probe (i.e. state) into this function
@@ -15,7 +15,7 @@ def unitary_evolve(ham, t, input_probe, use_sparse_dot_dunction=False, plus_or_m
     Hamiltonian with the given state. 
     Optional arguments are the same as in exp_ham, and are passed directly to it. 
     """
-    if not use_sparse_dot_dunction: 
+    if not use_sparse_dot_function: 
       import numpy as np
       return np.dot(
                   exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number),
@@ -80,20 +80,42 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
     - plus_or_mins: 1.0 to compute e^{iHt}; -1.0 to compute e^{-iHt}. Default -1.
     - precision: when matrix elements are changed by this amount or smaller, exponenitation is truncated.
     """
-    
     import libmatrix_utils as libmu
     import numpy as np
     n_qubits = np.log2(np.shape(src)[0])
+    """
     max_element = np.max(np.abs(src))
     if max_element == 0.0:
       max_element = 1.0
-    new_src = src/max_element
-    scalar = max_element * t
+    
+    python_scalar = max_element * t
+    #print("Python scalar=", python_scalar)
+
+    test_new_case = False
+
+    if test_new_case == False:
+        if max_element <= 1.0:
+
+            new_src = src
+            scalar = t
+        else:
+            new_src = src/max_element
+            scalar = max_element * t
+    else:
+
+        new_src = src
+        scalar = t
+    """
+
+    new_src = src
+    scalar = t
+
     if(print_method):
         print("Not Sparse function. N qubits = ", np.log2(np.shape(src)[0]))
         print("scalar = ", scalar, " \t cutoff = ", scalar_cutoff)
     if(scalar > scalar_cutoff):
-
+      #print("Scalar > Scalar cutoff. Scalar:", scalar, "\t Cutoff:", scalar_cutoff) 
+    # If matrix scalar is larger than the defined cutoff for known accuracy, default to using linalg.
       import scipy
       from scipy import linalg
       if(print_method):
@@ -108,10 +130,14 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
       return expd_mtx
     else:
       dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
+      
+      
+      
       inf_reached = libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision) # Call to C++ custom exponentiation function
-      if(print_method):
-        print("inf reached = ", inf_reached)
       if(inf_reached):
+        #print("Note: C++ function diverged; using linalg.")
+        if(print_method):
+          print("inf reached = ", inf_reached)
         import scipy
         from scipy import linalg
         if(n_qubits >= 6): # Large matrices -- worth using sparse.linalg

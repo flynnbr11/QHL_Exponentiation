@@ -423,12 +423,13 @@ public:
 	  void sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst);
 	  void sparse_hermitian_mult_old(const ComplexMatrix& rhs, ComplexMatrix& dst);
 	  void mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst);
+    //void ComplexMatrix::add_hermitian_scaled_by_double(const ComplexMatrix& rhs, const double& scale_double);
+
     void add_scaled_hermitian(const ComplexMatrix& rhs, const scalar_t& scale);
 	  void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
 	  void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
 	  bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
-
     bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const;
     void debug_print() const;
     void print_compressed_storage_full() const;
@@ -441,9 +442,14 @@ public:
 		uint32_t *num_nonzeros_by_row;
 		uint32_t **nonzero_col_locations;
 		complex_t **nonzero_values;
-		
-		
 
+void fill_mtx_scaled_by_double(const ComplexMatrix& rhs, double scale_double);
+
+
+//    void fill_mtx_scaled_by_double(const ComplexMatrix& rhs, double scale_double);
+//*
+
+//*/
 private:
     void destroy()
     {

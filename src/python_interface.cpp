@@ -203,7 +203,30 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     const ComplexMatrix src(src_rows, src_cols, src_ptr);
     ComplexMatrix dst(dst_rows, dst_cols, dst_ptr);
 	bool exp_reached_inf = false;
-	exp_reached_inf = src.exp_ham(dst, scale, precision, plus_minus_flag);
+	
+    double max_element = src.get_max_element_magnitude();
+    //printf("Max element=%f, time=%f\n", max_element, scale);
+    double rescaling_factor = max_element * scale ; 
+    // printf("Rescaling Hamiltonian by %f\n", rescaling_factor);
+    double to_rescale_mtx = 1.0/max_element;
+	
+	
+    ComplexMatrix scaled_src(src_rows, src_cols);
+    scaled_src.make_zero();
+	scaled_src.fill_mtx_scaled_by_double(src, to_rescale_mtx);
+    //printf("After being rescaled:\n");
+   // scaled_src.debug_print();
+
+    scaled_src.compress_matrix_storage();
+//    printf("After rescaling and compressing:\n");
+ //   scaled_src.print_compressed_storage();
+
+    //printf("Before exponentiation, scalar in python interface=%f\n", rescaling_factor);
+    exp_reached_inf = scaled_src.exp_ham(dst, rescaling_factor, precision, plus_minus_flag);
+	//printf("After exp ham, dst:\n");
+//	dst.debug_print();
+	
+	//exp_reached_inf = src.exp_ham(dst, scale, precision, plus_minus_flag);
     
     result_str = "ok: e^{-iHt}";
     return Py_BuildValue("b", exp_reached_inf);

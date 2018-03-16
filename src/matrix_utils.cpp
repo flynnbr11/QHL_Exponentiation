@@ -111,6 +111,19 @@ void ComplexMatrix::print_compressed_storage_full() const
 #define mul_full 0
 
 
+void ComplexMatrix::fill_mtx_scaled_by_double(const ComplexMatrix& rhs, double scale_double)
+{
+
+    scalar_t rescale_factor = to_scalar(scale_double);
+    complex_t val;
+    
+    for (uint32_t i = 0; i < num_rows * num_rows; ++i)
+    {
+        values[i] = mul_scalar(rhs.values[i], rescale_factor);
+    }
+}
+
+
 void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatrix& dst)
 {
     /*
@@ -284,12 +297,16 @@ void ComplexMatrix::sparse_hermitian_mult(const ComplexMatrix& rhs, ComplexMatri
 
 void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatrix& dst) // changing const of rhs
 {
+//    this->compress_matrix_storage();
+ //   rhs.compress_matrix_storage();
+
+
 
     size_t size = num_rows;
     complex_t zero = to_complex(0.0, 0.0);
     complex_t conj = to_complex(1.0, -1.0);
 
-		dst.make_zero();
+	dst.make_zero();
     for (uint32_t row = 0; row < size; ++row)
     {
 			if(this->num_nonzeros_by_row[row] != 0)
@@ -323,7 +340,7 @@ void ComplexMatrix::mul_herm_for_e_minus_i(const ComplexMatrix& rhs, ComplexMatr
 
 		}
 
-dst.compress_matrix_storage();
+dst.compress_matrix_storage(); // is this necessary?
 }
 
 
@@ -746,6 +763,14 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
             }
             //else if (scale_time_over_k_factorial < precision)
 
+            else if (k > 39)
+            {
+                //printf("Truncating expansion at k=39.\n");
+                infinite_val = true;
+                done=true;
+            }
+
+
             else if (scale_time_over_k_factorial < precision || k>k_max)
             {
             	done = true;
@@ -784,14 +809,14 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
     double norm_scalar;
     bool do_print = false;
 
-	ComplexMatrix rescaled_mtx(num_rows, num_cols);
+//	ComplexMatrix rescaled_mtx(num_rows, num_cols);
 
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
     power_accumulator1.make_identity();
     ComplexMatrix* pa[2] = {&power_accumulator0, &power_accumulator1};
-
+    
     dst.make_zero();
 
     double k_fact = 1.0;
@@ -803,11 +828,15 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
         if (k > 0)
       	{
 		    k_fact /= k;
-		    scale_time_over_k_factorial *= scalar_by_time/k;
+//		    scale_time_over_k_factorial *= scalar_by_time/k;
+		    scale_time_over_k_factorial *= scale/k;
+		   // printf("scale =%f\n", scale); 
+		    //printf("k=%u \t a^k=%f\n", k, scale_time_over_k_factorial); 
 		}
 				
         if (scale_time_over_k_factorial >= precision)
-        { 
+        {
+           // printf("scale time > precision\n");
         /* 
         * This is where actual exponentiation happens by multiplying a running total,
         * H^m, by H to get H^m. 
@@ -823,13 +852,33 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             uint32_t alternate = k & 1;
             ComplexMatrix& new_pa = *pa[alternate];
             ComplexMatrix& old_pa = *pa[1 - alternate];
+
+
+  //          new_pa.compress_matrix_storage();
+//            old_pa.compress_matrix_storage();
+
+
             if (k > 0)
             {
                 new_pa.compress_matrix_storage();
                 old_pa.compress_matrix_storage();
+                //printf("After compressing new pa in loop:\n");
+                //new_pa.print_compressed_storage();
+                //this->compress_matrix_storage();
+                //printf("After compression\n");
+		        //printf("new:\n");
+		        //new_pa.debug_print();
+		        //printf("old:\n");
+		        //old_pa.debug_print();
+							
+				//printf("THIS compressed storage before multiplication:\n");
+				//this->print_compressed_storage();
 									
                 old_pa.mul_herm_for_e_minus_i(*this, new_pa);                
+
 			}	
+
+
 						
             complex_t one_over_k_factorial_simd;
             
@@ -886,14 +935,26 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             	done = true;
             	infinite_val = true;
             }
+            //*
+            else if (k > 39)
+            {
+                //printf("Truncating expansion at k=39.\n");
+                infinite_val = true;
+                done=true;
+            }
+            //*/
             else if (scale_time_over_k_factorial < precision)
             {
             	done = true;
             }
-            
             else
             { /* only add to destination matrix if not yet at inf */
+		         // printf("At k=%u adding by factor %f ( %.7e+%.7ei)\n", k, scale_time_over_k_factorial, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd)); 
+		          
+		          
 		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
+		          //printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+		          //dst.debug_print();
             }
             
         }
@@ -902,7 +963,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             done = true;
         }
     }
-
+    //printf("At end of exp ham fnc, dst:\n");
     return infinite_val;
 }
 
