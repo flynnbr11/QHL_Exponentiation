@@ -7,7 +7,7 @@ from __future__ import print_function # so print doesn't show brackets
 from inspect import currentframe
 
 
-def unitary_evolve(ham, t, input_probe, use_sparse_dot_function=False, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
+def unitary_evolve(ham, t, input_probe, use_sparse_dot_function=False, precision = 1e-6, k_max=None, plus_or_minus = -1.0, precision_cpp=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
     
     """
     Pass ham, t, input_probe (i.e. state) into this function
@@ -15,20 +15,22 @@ def unitary_evolve(ham, t, input_probe, use_sparse_dot_function=False, plus_or_m
     Hamiltonian with the given state. 
     Optional arguments are the same as in exp_ham, and are passed directly to it. 
     """
+    
+    
     if not use_sparse_dot_function: 
       import numpy as np
       return np.dot(
-                  exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number),
+                  exp_ham(ham, t, precision, k_max, plus_or_minus, precision_cpp, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number),
                   input_probe)
       
     else: 
       from scipy.sparse import csr_matrix
       return csr_matrix(
-                  exp_ham(ham, t, plus_or_minus, precision, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)
+                  exp_ham(ham, t, plus_or_minus, precision_cpp, scalar_cutoff, print_method, enable_sparse_functionality, sparse_min_qubit_number)
               ).dot(input_probe)
 
 
-def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
+def exp_ham(src, t, precision=1e-6, k_max=None, plus_or_minus = -1.0, precision_cpp=1e-18, scalar_cutoff = 10, print_method=False, enable_sparse_functionality = True, sparse_min_qubit_number = 7):
     import numpy as np
     if np.shape(src)[0] != np.shape(src)[1]: 
         ("Hamiltonian: ", src)
@@ -41,50 +43,54 @@ def exp_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, p
     if src.dtype != 'complex128':
         # Ensure datatype is complex
         src = src.astype('complex128')
+
+    if k_max is None:
+        k_max = k_max_from_precision(precision)
+
     
     if n_qubits >= sparse_min_qubit_number and enable_sparse_functionality:
-      return np.array(exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method))
+      return np.array(exp_ham_sparse(src, t, k_max, plus_or_minus = plus_or_minus, precision_cpp=precision_cpp, scalar_cutoff=scalar_cutoff, print_method=print_method))
     
     else: 
-      return np.array(exponentiate_ham(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method))
+      return np.array(exponentiate_ham(src, t, k_max, plus_or_minus = plus_or_minus, precision_cpp=precision_cpp, scalar_cutoff=scalar_cutoff, print_method=print_method))
 
 
-def exp_ham_trotter(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
+def exp_ham_trotter(src, t, plus_or_minus = -1.0, precision_cpp=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
     import numpy as np
     from numpy import linalg as nplg
     n_qubits=np.log2(np.shape(src)[0])
     n = trotterize_by
     
     if n_qubits >= 7:
-      exp_iHt = exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
+      exp_iHt = exp_ham_sparse(src, t, plus_or_minus = plus_or_minus, precision_cpp=precision_cpp, scalar_cutoff=scalar_cutoff, print_method=print_method)
   
     else:     
       if n == 1.0: 
         if print_method: 
           print ("Not Trotterized")
-        exp_iHt = exponentiate_ham(src, t, precision=precision, plus_or_minus=plus_or_minus, scalar_cutoff=scalar_cutoff, print_method=print_method)
+        exp_iHt = exponentiate_ham(src, t, precision_cpp=precision_cpp, plus_or_minus=plus_or_minus, scalar_cutoff=scalar_cutoff, print_method=print_method)
       else: 
         if print_method: 
           print("Trotterized; trot = ", n)
         time_over_n = t/trotterize_by
-        exp_iHt_over_n = exponentiate_ham(src, time_over_n, precision=precision, scalar_cutoff=scalar_cutoff, print_method=print_method)
+        exp_iHt_over_n = exponentiate_ham(src, time_over_n, precision_cpp=precision_cpp, scalar_cutoff=scalar_cutoff, print_method=print_method)
         exp_iHt = nplg.matrix_power(exp_iHt_over_n, n)
     return exp_iHt
 
-def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False):
+def exponentiate_ham(src, t, k_max=40, plus_or_minus = -1.0, precision_cpp=1e-18, scalar_cutoff = 10, print_method=False):
     """
     Calls on C++ function to compute e^{-iHt}.
     Provide parameters: 
     - src: Hamiltonian to exponentiate
     - t: time
     - plus_or_mins: 1.0 to compute e^{iHt}; -1.0 to compute e^{-iHt}. Default -1.
-    - precision: when matrix elements are changed by this amount or smaller, exponenitation is truncated.
+    - precision_cpp: when matrix elements are changed by this amount or smaller, exponenitation is truncated.
     """
     import libmatrix_utils as libmu
     import numpy as np
     n_qubits = np.log2(np.shape(src)[0])
-    """
     max_element = np.max(np.abs(src))
+    """
     if max_element == 0.0:
       max_element = 1.0
     
@@ -132,8 +138,8 @@ def exponentiate_ham(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutof
       dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
       
       
-      
-      inf_reached = libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision) # Call to C++ custom exponentiation function
+#      k_max = 22
+      inf_reached = libmu.exp_pm_ham(new_src, dst, plus_or_minus, scalar, precision_cpp, k_max) # Call to C++ custom exponentiation function
       if(inf_reached):
         #print("Note: C++ function diverged; using linalg.")
         if(print_method):
@@ -161,7 +167,7 @@ def get_linenumber():
     return cf.f_back.f_lineno
 
 
-def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
+def exp_ham_sparse(src, t, k_max=40, plus_or_minus = -1.0, precision_cpp=1e-18, scalar_cutoff = 10, print_method=False, trotterize_by=1.0):
   import numpy as np
   import libmatrix_utils as libmu
   max_element = np.max(np.abs(src))
@@ -190,8 +196,9 @@ def exp_ham_sparse(src, t, plus_or_minus = -1.0, precision=1e-18, scalar_cutoff 
     max_nnz_in_any_row, num_nnz_by_row, nnz_col_locations, nnz_vals  = matrix_preprocessing(new_src)
     dst = np.ndarray(shape=(np.shape(src)[0], np.shape(src)[1]), dtype=np.complex128)
 
-    # Call C++ extension    
-    inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision)
+    # Call C++ extension
+   # k_max = 18    
+    inf_reached = libmu.exp_pm_ham_sparse(dst, nnz_vals, nnz_col_locations, num_nnz_by_row, max_nnz_in_any_row, plus_or_minus, scalar, precision_cpp, k_max)
 
     if(inf_reached):
       del dst
@@ -277,6 +284,32 @@ def random_hamiltonian(number_qubits):
     output = np.reshape(output, [2**size,2**size])
   return output
   
+
+
+def k_max_from_precision(precision):
+    if (precision <= 1e-14):
+        k_max = 20
+    elif (1e-14 < precision <= 1e-12):     
+        k_max = 25
+    elif (1e-12 < precision <= 1e-9):     
+        k_max = 30
+    elif (1e-9 < precision <= 1e-8):     
+        k_max = 35
+    elif (1e-8 < precision <= 1e-6):     
+        k_max = 40
+    elif (1e-6 < precision <= 1e-4):     
+        k_max = 45
+    elif (1e-4 < precision <= 1e-2):     
+        k_max = 50
+    else:
+        k_max = 40 # default corresponds to precision 10^{-6}
+        
+        
+    print("For precision", precision, "k_max=", k_max)
+    return k_max
+    
+    
+
   
 def test_exp_ham_function(
     min_qubit = 1,
@@ -285,6 +318,7 @@ def test_exp_ham_function(
     threshold = 1e-14, # Tolerance at which matrix elements considered equal
     check_all_equal = True,
     print_times_and_ratios = False,
+    print_exp_method = False, 
     test_sparse_speedup = False,
     num_tests = 1
 ):
@@ -306,7 +340,7 @@ def test_exp_ham_function(
             ham = random_hamiltonian(num_qubit)
             t = random.random()
             c1 = time.time()
-            custom = exp_ham(ham, t)
+            custom = exp_ham(ham, t, k_max=40, print_method=print_exp_method)
             c2 = time.time()
             tc = c2-c1
             if print_times_and_ratios: print("sparse takes ", tc, " seconds.")

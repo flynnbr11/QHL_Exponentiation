@@ -64,13 +64,14 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
     double scale = 0.0f;
     double plus_or_minus = 0.0f;
     double max_nnz_in_any_row = 0.0f;
+    double k_max = 0.0f;
     PyArrayObject* nnz_vals_p;
     PyArrayObject* nnz_col_locations_p;
     PyArrayObject* num_nnz_by_row_p;
     PyArrayObject* dst_matrix;
 
 
-     if (!PyArg_ParseTuple(args, "O!O!O!O!dddd",  &PyArray_Type, &dst_matrix, &PyArray_Type, &nnz_vals_p, &PyArray_Type, &nnz_col_locations_p, &PyArray_Type, &num_nnz_by_row_p, &max_nnz_in_any_row , &plus_or_minus, &scale, &precision))
+     if (!PyArg_ParseTuple(args, "O!O!O!O!ddddd",  &PyArray_Type, &dst_matrix, &PyArray_Type, &nnz_vals_p, &PyArray_Type, &nnz_col_locations_p, &PyArray_Type, &num_nnz_by_row_p, &max_nnz_in_any_row , &plus_or_minus, &scale, &precision, &k_max))
     {
         fprintf(stderr, "Error: Sparse function arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
@@ -83,8 +84,6 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 
     uint32_t max_nnz = (uint32_t) max_nnz_in_any_row;
     uint32_t num_rows = (uint32_t) dst_rows;
-
-
 
     uint32_t* nnz_by_row = (uint32_t*)PyArray_DATA(num_nnz_by_row_p);;
     complex_t* tmp_nnz_vals = (complex_t*)PyArray_DATA(nnz_vals_p);
@@ -132,7 +131,7 @@ static PyObject* Exp_iHt_sparse(PyObject *self, PyObject *args)
 
     if(PRINT_LINE) fprintf(stderr,"Running at :%d\n", __LINE__);
     
-    exp_reached_inf = hamiltonian.exp_ham_sparse(dst_ptr, scale, precision, plus_minus_flag);
+    exp_reached_inf = hamiltonian.exp_ham_sparse(dst_ptr, scale, precision, k_max, plus_minus_flag);
     
     /*
     Free allocated memory.
@@ -158,10 +157,11 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     double precision = 0.0f;
     double scale = 0.0f;
     double plus_or_minus = 0.0f;
+	double k_max = 0.0f;
     PyArrayObject* src_matrix;
     PyArrayObject* dst_matrix;
 
-    if (!PyArg_ParseTuple(args, "O!O!ddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision))
+    if (!PyArg_ParseTuple(args, "O!O!dddd", &PyArray_Type, &src_matrix, &PyArray_Type, &dst_matrix, &plus_or_minus, &scale, &precision, &k_max))
     {
         fprintf(stderr, "Error: expm_minus_i_h_t() arguments don't match, at %s %s:%d\n", __FUNCTION__, __FILE__, __LINE__);
         return NULL;
@@ -210,7 +210,6 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
     // printf("Rescaling Hamiltonian by %f\n", rescaling_factor);
     double to_rescale_mtx = 1.0/max_element;
 	
-	
     ComplexMatrix scaled_src(src_rows, src_cols);
     scaled_src.make_zero();
 	scaled_src.fill_mtx_scaled_by_double(src, to_rescale_mtx);
@@ -222,7 +221,7 @@ static PyObject* Exp_iHt(PyObject *self, PyObject *args)
  //   scaled_src.print_compressed_storage();
 
     //printf("Before exponentiation, scalar in python interface=%f\n", rescaling_factor);
-    exp_reached_inf = scaled_src.exp_ham(dst, rescaling_factor, precision, plus_minus_flag);
+    exp_reached_inf = scaled_src.exp_ham(dst, rescaling_factor, precision, k_max,  plus_minus_flag);
 	//printf("After exp ham, dst:\n");
 //	dst.debug_print();
 	

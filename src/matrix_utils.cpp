@@ -640,19 +640,20 @@ void ComplexMatrix::steal_values(const ComplexMatrix& other)
 
 
 
-bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const
+bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, double k_max, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
 
     double scalar_by_time = scale;
     bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
+    double maximum_k_value = uint32_t(k_max);
+
     double norm_scalar;
     bool do_print = false;
     bool print_exp_k_loop = false;
     bool print_exp_k_loop_swap = false;
     bool print_exp_mult = false;
-    uint32_t k_max = 100;
     ComplexMatrix power_accumulator0(num_rows, num_cols);
     ComplexMatrix power_accumulator1(num_rows, num_cols);
     power_accumulator0.make_identity();
@@ -763,15 +764,15 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
             }
             //else if (scale_time_over_k_factorial < precision)
 
-            else if (k > 39)
+            else if (k > maximum_k_value)
             {
-                //printf("Truncating expansion at k=39.\n");
+                //printf("Truncating expansion at k=%u.\n", k);
                 infinite_val = true;
                 done=true;
             }
 
 
-            else if (scale_time_over_k_factorial < precision || k>k_max)
+            else if (scale_time_over_k_factorial < precision)
             {
             	done = true;
             }
@@ -779,6 +780,8 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
             else
             { /* only add to destination matrix if not yet at inf */
 		          dst.add_complex_scaled_hermitian_sparse(new_pa, one_over_k_factorial_simd);
+		          printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+
             }
             
         }
@@ -798,11 +801,11 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
 
 
 
-bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const
+bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, double k_max, bool plus_minus) const
 {
     /* To avoid extra copying, we alternate power accumulation matrices */
     double scalar_by_time = scale;
-
+    double maximum_k_value = uint32_t(k_max);
 	bool infinite_val = false; // If the matrix multiplication doesn't diverge, this is set to true and returned to indicate the method has failed. 
     bool rescale_method = true; // Flag to rescale Hamiltonian so that all elements <=1
 
@@ -936,9 +939,9 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             	infinite_val = true;
             }
             //*
-            else if (k > 39)
+            else if (k > maximum_k_value)
             {
-                //printf("Truncating expansion at k=39.\n");
+                printf("Truncating expansion at k=%u.\n", k);
                 infinite_val = true;
                 done=true;
             }
@@ -953,7 +956,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 		          
 		          
 		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
-		          //printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+		          printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
 		          //dst.debug_print();
             }
             

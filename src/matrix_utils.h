@@ -429,8 +429,8 @@ public:
 	  void add_complex_scaled_hermitian(const ComplexMatrix& rhs, const complex_t& scale);
 	  void add_complex_scaled_hermitian_sparse(const ComplexMatrix& rhs, const complex_t& scale);
     void add_hermitian(const ComplexMatrix& rhs);
-	  bool exp_ham(ComplexMatrix& dst, double scale, double precision, bool plus_minus) const;    
-    bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, bool plus_minus) const;
+	  bool exp_ham(ComplexMatrix& dst, double scale, double precision, double k_max, bool plus_minus) const;    
+    bool exp_ham_sparse(complex_t* dst_ptr, double scale, double precision, double k_max, bool plus_minus) const;
     void debug_print() const;
     void print_compressed_storage_full() const;
     void print_compressed_storage() const;
