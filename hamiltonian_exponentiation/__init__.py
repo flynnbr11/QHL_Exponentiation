@@ -305,7 +305,7 @@ def k_max_from_precision(precision):
         k_max = 40 # default corresponds to precision 10^{-6}
         
         
-    print("For precision", precision, "k_max=", k_max)
+    #print("For precision", precision, "k_max=", k_max)
     return k_max
     
     

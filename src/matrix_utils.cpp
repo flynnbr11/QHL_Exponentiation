@@ -780,7 +780,7 @@ bool ComplexMatrix::exp_ham_sparse(complex_t* dst_ptr, double scale, double prec
             else
             { /* only add to destination matrix if not yet at inf */
 		          dst.add_complex_scaled_hermitian_sparse(new_pa, one_over_k_factorial_simd);
-		          printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+		          //printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
 
             }
             
@@ -941,7 +941,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
             //*
             else if (k > maximum_k_value)
             {
-                printf("Truncating expansion at k=%u.\n", k);
+                //printf("Truncating expansion at k=%u.\n", k);
                 infinite_val = true;
                 done=true;
             }
@@ -956,7 +956,7 @@ bool ComplexMatrix::exp_ham(ComplexMatrix& dst, double scale, double precision, 
 		          
 		          
 		          dst.add_complex_scaled_hermitian(new_pa, one_over_k_factorial_simd);
-		          printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
+		          //printf("k=%u k!=%f \t Scalar: %.7e+%.7ei \n", k, k_fact, get_real(one_over_k_factorial_simd), get_imag(one_over_k_factorial_simd));
 		          //dst.debug_print();
             }
             
