@@ -18,7 +18,7 @@ The primary function here, exp_ham, takes a Hamiltonian and a time, and computes
 It does this by series expansion, truncating the series when it reaches the declared precision.
 e^{x} = x^0 / 0! + x^1 / 1! + ... + x^n/n! 
 
-In particular, the Hamiltonian H is a sparse, Hermitian matrix. This is recast to a*H', such that all elements of H' are less than one, and a is some scalar. (Say time*a = s, a scalar). The expansion is:
+In particular, the Hamiltonian H is a sparse, Hermitian matrix. This is recast to a\*H', such that all elements of H' are less than one, and a is some scalar. (Say time\*a = s, a scalar). The expansion is:
 
 e^{-iHt} = e^{-i* a*t * H'} = e^{-i * s * H'} = I - i{s^1/1! } H^1 - {s^2/2! } H^2 + i{s^3/3! } H^3 + ...
 
